@@ -6,7 +6,7 @@ if (chrome){
 
 var devLog = function(str, obj){
     // FIXME: only log to console if we're in Chrome with Nerd Mode enabled.
-    // if (settings && settings.showOaColor && navigator.userAgent.indexOf("Chrome") > -1){
+    // if (settings && settings.showSWHColor && navigator.userAgent.indexOf("Chrome") > -1){
         console.log("updateswh: " + str, obj)
     //}
 }
@@ -15,8 +15,6 @@ devLog("updateswh is running")
 // global variables:
 var iframeIsInserted = false
 var settings = {}
-var myHost = window.location.hostname
-var allSources = []
 
 /***********************************************************************************
  *
@@ -110,8 +108,8 @@ function getandshowstatus(url,forgespecs){
     var results = testupdateforge(url,forgespecs);
     var resultsChecker=setInterval(function(){
         if (results.isComplete){
-	    // FIXME: update the DOM with the results based on the color, use following commented code as starting point
-            //insertIframe(results.color, results.projecturl)
+	    // display button using an iframe named with the color and the project url
+            insertIframe(results.color, results.projecturl)
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
@@ -152,20 +150,6 @@ function insertIframe(name, url){
     document.documentElement.appendChild(iframe);
     iframeIsInserted = true
 }
-
-
-// from https://davidwalsh.name/get-absolute-url
-var getAbsoluteUrl = (function() {
-	var a;
-
-	return function(url) {
-		if(!url) return;
-		if(!a) a = document.createElement('a');
-		a.href = url;
-
-		return a.href;
-	};
-})();
 
 /***********************************************************************************
  *
