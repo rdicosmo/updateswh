@@ -1,0 +1,50 @@
+{
+  "name": "UpdateSWH",
+  "version": "0.1",
+  "manifest_version": 1,
+  "description": "Check archival state of a source code repository and propose to update it if needed.",
+  "icons": {
+    "16": "img/icon-16.png",
+    "32": "img/icon-32.png",
+    "48": "img/icon-48.png",
+    "64": "img/icon-64.png",
+    "128": "img/icon-128.png"
+  },
+  "applications": {
+    "gecko": {
+      "strict_min_version": "53.0"
+    }
+  },
+  "browser_action": {
+    "default_icon": "img/icon.png",
+    "default_title": "UpdateSWH",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+
+  "content_scripts": [
+    {
+      "matches": [
+	  "*://*.github.com/*",
+	  "*://github.com/*"    
+      ],
+      "js": [
+        "js/jquery-3.1.1.min.js",
+        "updateswh.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+      "updateswh.html"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  }
+}
