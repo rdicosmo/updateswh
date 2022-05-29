@@ -20,30 +20,36 @@ var allSources = []
 
 /***********************************************************************************
  *
- * Forge specifics
+ * Generic code to check a project from a forge in the Software Heritage archive
  *
+ * Color code:
+ *  
+ *    - red    : should never happen: the forge API request fails on the project
+ *    - black  : project unknown in Software Heritage
+ *    - yellow : project known in Software Heritage, but changed since last visit
+ *    - green  : project known in Software Heritage, not changed since last visit
+ * 
  ************************************************************************************/
 
-// FIXME: generalize with forge specific parameters
-// we can abstract the computation of userproject and forgeapiurl, and replace "GH" in messages with the forge 'type'
-
-function testupdateGitHub(url,pattern) {
-    var projecturl=pattern.exec(url)[0]; // this is the url of the project
-    var userproject=projecturl.replace(/http.*:\/\/github.com\//,""); // this is the user+project fragment
-    var forgeapiurl = "https://api.github.com/repos/" + userproject;
+function testupdateforge(url,forgespecs) {
+    var projecturl  = forgespecs.projecturl;
+    var userproject = forgespecs.userproject;
+    var forgeapiurl = forgespecs.forgeapiurl;
+    var forgename   = forgespecs.forgename;
+    
+    // fixed parameters
     var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest";
     var forgelastupdate = "";
     var swhlastupdate = "";
     var results = {
         projecturl: projecturl,
-        isComplete: false,
+        isComplete: false, // flag to record completion of the following code that is asynchronous
         color: "black"
     }
-
     $.getJSON(forgeapiurl) // get last update time from GitHub
         .done(function(resp){
 	    forgelastupdate = resp.updated_at;
-            devLog("call to GH API returned: ", forgelastupdate);
+            devLog("call to " + forgename + " API returned: ", forgelastupdate);
 	    $.getJSON(swhapiurl) // get last visit time from SWH <-- all this is generic, get it out from here!
 		.done(function(resp){
 		    swhlastupdate = resp.date;
@@ -61,31 +67,47 @@ function testupdateGitHub(url,pattern) {
 		})
         })
 	.fail(function(resp){
-	    devLog("call to GH API failed", resp);
+	    devLog("call to " + forgename + " API failed", resp);
 	    results.color="red";
 	    results.isComplete=true;
         });
     return results;
 }
 
+/***********************************************************************************
+ *
+ * Forge specifics
+ *
+ ************************************************************************************/
+
+function setupGitHub(url,pattern,type){
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var userproject = projecturl.replace(/http.*:\/\/github.com\//,""); // this is the user+project fragment
+    var forgeapiurl = "https://api.github.com/repos/" + userproject;
+    return {
+	projecturl : projecturl,
+	userproject : userproject,
+	forgeapiurl : forgeapiurl,
+	forgename : type
+    };
+}
+
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
 // order is important: first match will be used!
-
-// FIXME: generalize with forge specific parameters
-// we can add the computation of userproject and forgeapiurl
+// FIXME: complete setup functions
 
 var forgehandlers = [
-    {pattern: /http.*:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: testupdateGitHub},
-//    {pattern: /http.*:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: testupdateGitLab},
-//    {pattern: /http.*:\/\/[^\/]*gitlab[^\/]*\/[^\/]*\/[^\/]+/ , type: 'GitLab instance', handler: testupdateGitLab},
+    {pattern: /http.*:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub},
+//    {pattern: /http.*:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab},
+//    {pattern: /http.*:\/\/[^\/]*gitlab[^\/]*\/[^\/]*\/[^\/]+/ , type: 'GitLab instance', handler: setupGitLabinstance},
     ]
 
 // Get the status of the repository by polling the results of the handler until
 // its work is completed, then show the result with the iframe and quit.
 
-function getandshowstatus(url,fh){
-    var results = fh.handler(url,fh.pattern);
+function getandshowstatus(url,forgespecs){
+    var results = testupdateforge(url,forgespecs);
     var resultsChecker=setInterval(function(){
         if (results.isComplete){
 	    // FIXME: update the DOM with the results based on the color, use following commented code as starting point
@@ -95,12 +117,6 @@ function getandshowstatus(url,fh){
     }, 250)
     return results;
 }     
-
-// to test ...
-// getandshowstatus("https://github.com/rdicosmo/parmap",/http.*:\/\/github.com\/[^\/]*\/[^\/]+/,);
-	
-
-
 
 /***********************************************************************************
  *
@@ -157,16 +173,25 @@ var getAbsoluteUrl = (function() {
  *
  ************************************************************************************/
 
-function run() {
-    // dispatch based on the current url
-    var url = window.location.href;
+// to test ...
+// handle("https://github.com/rdicosmo/parmap");
+
+
+function handle(url) {
+    // dispatch based on the url
+    var result = "";
     forgehandlers.every(function(fh){
         if (url.match(fh.pattern)) {
 	    devLog("Match " + url + " with " + fh.type);
-            getandshowstatus(url,fh);
+            result=getandshowstatus(url,fh.handler(url,fh.pattern,fh.type));
 	    return false
         } else {devLog("No match " + url + " on " + fh.type)}
-    })
+    });
+    return result;
+}
+
+function run () {
+    handle(window.location.href);
 }
 			 
 function runWithSettings(){
