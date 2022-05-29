@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update SWH Extension Options</title>
+    <style>
+        body {
+            padding: 10px;
+            font-family: sans-serif;
+            line-height: 1.5;
+        }
+        #status {
+            min-height: 30px;
+            padding: 0;
+        }
+
+        div.option {
+            margin-bottom: 40px;
+        }
+
+        p {
+            margin-top: 5px;
+        }
+        p span {
+            /*font-weight: bold;*/
+        }
+        .green {color: #20e168; }
+        .grey {color: #D3D3D3; }
+        .lightgreen {color: #90ee90; }
+        .yellow {color: #ffff00;}
+        .red {color: #ff0000;}
+        label {
+            font-size: 120%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="option">
+    <label>
+        <input type="checkbox" id="swh-debug">
+        SWH Debug Mode
+    </label>
+    <p>
+        Enable console log of the SWH extension actions.
+    </p>
+</div>
+
+
+
+<div id="status"></div>
+
+<hr>
+<p>
+    For FAQ and contact info, check out <a href="https://softwareheritage.org/browser-extension">softwareheritage.org</a>
+</p>
+
+<script src="options.js"></script>
+</body>
+</html>
