@@ -5,10 +5,10 @@ if (chrome){
 
 
 var devLog = function(str, obj){
-    // FIXME: only log to console if we're in Chrome with Nerd Mode enabled.
-    // if (settings && settings.showSWHColor && navigator.userAgent.indexOf("Chrome") > -1){
+    // only log to console if we're in Chrome with Debug Mode enabled.
+    if (settings && settings.swhdebug && navigator.userAgent.indexOf("Chrome") > -1){
         console.log("updateswh: " + str, obj)
-    //}
+    }
 }
 devLog("updateswh is running")
 
@@ -186,7 +186,7 @@ function runWithSettings(){
     });
 }
 
-// runWithSettings()
+runWithSettings()
 
 
 
