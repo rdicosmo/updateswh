@@ -2,6 +2,17 @@ if (typeof chrome !== "undefined"){
     browser = chrome
 }
 
+var devLog = function(str, obj){
+    // only log to console if we're in Chrome with Debug Mode enabled.
+    if (settings && settings.swhdebug && navigator.userAgent.indexOf("Chrome") > -1){
+        console.log("updateswh: " + str, obj)
+    }
+}
+devLog("script inside the iframe is running")
+
+// global variables:
+var settings = {}
+
 var parts = window.name.split("#")
 var color = parts[0]
 var url = decodeURI(parts.slice(1).join('#'))
@@ -37,3 +48,8 @@ else { // we propose to save the project
 $(".button").fadeIn();
 
 $(".button").addClass(color)
+
+    browser.storage.local.get(null, function(items){
+        settings = items
+        devLog("got settings", settings)
+    });
