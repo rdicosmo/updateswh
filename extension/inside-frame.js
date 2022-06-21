@@ -17,7 +17,7 @@ var parts = window.name.split("#")
 var color = parts[0]
 var url = decodeURI(parts.slice(1).join('#'))
 var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url="+encodeURI(url)
-var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/"+encodeURI(url)
+var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/"+encodeURI(url)+"/"
 var swhsaverequested = false;
 
 if (color == "green") { // everything is up to date!
@@ -29,7 +29,7 @@ if (color == "green") { // everything is up to date!
 else { // we propose to save the project   
     $(".button").click(function(){
 	if (!swhsaverequested){ // ensure we only request saving once
-	    $.getJSON(swhsaveurl, function(){swhsaverequested=true})
+	    $.post(swhsaveurl, function(data, status, xhr){swhsaverequested=true},)
 		.done(function(resp){
 		    $(".button").removeClass("yellow").addClass("lightgreen");
 		    devLog("Successful " + swhsaveurl);
