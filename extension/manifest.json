@@ -10,11 +10,6 @@
     "64": "img/icon-64.png",
     "128": "img/icon-128.png"
   },
-  "applications": {
-    "gecko": {
-      "strict_min_version": "53.0"
-    }
-  },
   "browser_action": {
     "default_icon": "img/icon.png",
     "default_title": "UpdateSWH",
@@ -27,7 +22,6 @@
     "persistent": true
   },
   "content_security_policy": "script-src 'self'; object-src 'self'",
-
   "content_scripts": [
     {
       "matches": [
@@ -46,5 +40,10 @@
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
-  }
+  },
+  "permissions": [
+      "*://*.github.com/*",
+      "*://github.com/*",
+      "storage"
+  ]
 }
