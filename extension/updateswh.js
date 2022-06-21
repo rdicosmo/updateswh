@@ -46,7 +46,7 @@ function testupdateforge(url,forgespecs) {
     }
     $.getJSON(forgeapiurl) // get last update time from GitHub
         .done(function(resp){
-	    forgelastupdate = resp.updated_at;
+	    forgelastupdate = resp.pushed_at;
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
 	    $.getJSON(swhapiurl) // get last visit time from SWH <-- all this is generic, get it out from here!
 		.done(function(resp){
