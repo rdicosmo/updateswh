@@ -23,7 +23,7 @@ var settings = {}
  * Color code:
  *  
  *    - red    : should never happen: the forge API request fails on the project
- *    - black  : project unknown in Software Heritage
+ *    - grey   : project unknown in Software Heritage
  *    - yellow : project known in Software Heritage, but changed since last visit
  *    - green  : project known in Software Heritage, not changed since last visit
  * 
@@ -42,7 +42,7 @@ function testupdateforge(url,forgespecs) {
     var results = {
         projecturl: projecturl,
         isComplete: false, // flag to record completion of the following code that is asynchronous
-        color: "black"
+        color: "grey"
     }
     $.getJSON(forgeapiurl) // get last update time from GitHub
         .done(function(resp){
@@ -57,7 +57,7 @@ function testupdateforge(url,forgespecs) {
 		})
 		.fail(function(resp){
 		    devLog("call to SWH API failed", resp);
-		    results.color="black";
+		    results.color="grey";
 		})
 		.always(function(resp){
 		    devLog("call to SWH API finished", resp);

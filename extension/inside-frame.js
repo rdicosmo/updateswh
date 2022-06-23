@@ -31,11 +31,11 @@ else { // we propose to save the project
 	if (!swhsaverequested){ // ensure we only request saving once
 	    $.post(swhsaveurl, function(data, status, xhr){swhsaverequested=true},)
 		.done(function(resp){
-		    $(".button").removeClass("yellow").addClass("lightgreen");
+		    $(".button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
 		    devLog("Successful " + swhsaveurl);
 		})
 		.fail(function(resp){
-		    $(".button").removeClass("yellow").addClass("grey");
+		    $(".button").removeClass("yellow").addClass("red");
 		    devLog("Failed " + swhsaveurl);
 		})
 		.always(function(resp){
