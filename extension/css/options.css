@@ -1,0 +1,23 @@
+        body {
+            padding: 10px;
+            font-family: sans-serif;
+            line-height: 1.5;
+        }
+        #status {
+            min-height: 30px;
+            padding: 0;
+        }
+
+        div.option {
+            margin-bottom: 40px;
+        }
+
+        p {
+            margin-top: 5px;
+        }
+        p span {
+            /*font-weight: bold;*/
+        }
+        label {
+            font-size: 120%;
+        }

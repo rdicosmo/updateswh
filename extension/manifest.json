@@ -1,7 +1,7 @@
 {
   "name": "UpdateSWH",
   "version": "0.1",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "Check archival state of a source code repository and propose to update it if needed.",
   "icons": {
     "16": "img/icon-16.png",
@@ -10,18 +10,19 @@
     "64": "img/icon-64.png",
     "128": "img/icon-128.png"
   },
-  "browser_action": {
-    "default_icon": "img/icon.png",
-    "default_title": "UpdateSWH",
-    "default_popup": "popup.html"
+  "action": {
+      "default_title": "UpdateSWH",
+      "default_popup": "popup.html",
+      "default_icon": {
+	  "16": "/img/icon-16.png",
+          "32": "/img/icon-32.png",
+          "48": "/img/icon-48.png",
+          "128": "/img/icon-128.png"
+      }
   },
   "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": true
+    "service_worker": "background.js"
   },
-  "content_security_policy": "script-src 'self'; object-src 'self'",
   "content_scripts": [
     {
       "matches": [
@@ -34,16 +35,26 @@
       ]
     }
   ],
+  "content_security_policy": {
+      "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'"
+  },
   "web_accessible_resources": [
-      "updateswh.html"
+      {
+	  "resources": [ "updateswh.html" ],
+	  "matches": [
+	      "*://*/*"
+	  ]
+      }
   ],
   "options_ui": {
     "page": "options.html",
-    "chrome_style": true
+    "open_in_tab": false
   },
   "permissions": [
-      "*://*.github.com/*",
-      "*://github.com/*",
       "storage"
+  ],
+  "host_permissions": [
+      "*://*.github.com/*",
+      "*://github.com/*"
   ]
 }
