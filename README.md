@@ -14,5 +14,6 @@ that is not publicly accessible, and that naturally cannot be archived.
 
 More documentation is available on the website at https://www.softwareheritage.org/browser-extensions/
 
-Many thanks to the Unpaywall extension developers, whose work has been used
-as a substantial basis for developing this extension.
+Many thanks to the Unpaywall extension developers (see
+https://unpaywall.org/products/extension): their work has been an essential
+starting point for developing this extension.
