@@ -42,7 +42,8 @@
       {
 	  "resources": [ "updateswh.html" ],
 	  "matches": [
-	      "*://*/*"
+	      "*://*.github.com/*",
+	      "*://github.com/*"
 	  ]
       }
   ],
