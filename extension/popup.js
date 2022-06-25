@@ -12,13 +12,7 @@ document.getElementById("options").addEventListener("click",
 
 document.getElementById("homepage").addEventListener("click",
     function(){
-        browser.tabs.create({url: "https://softwareheritage.org/browser-extensions"})
-    }
-)
-
-document.getElementById("example").addEventListener("click",
-    function(){
-        browser.tabs.create({url: "https://softwareheritage.org/browser-extensions"})
+        browser.tabs.create({url: "https://softwareheritage.org/browser-extensions/#UpdateSWH"})
     }
 )
 
