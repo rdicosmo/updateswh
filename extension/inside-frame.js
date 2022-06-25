@@ -16,6 +16,7 @@ var settings = {}
 var parts = window.name.split("#")
 var color = parts[0]
 var url = decodeURI(parts.slice(1).join('#'))
+var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo" // documentation about missinig repositories (typically private ones)
 var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url="+encodeURI(url)
 var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/"+encodeURI(url)+"/"
 var swhsaverequested = false;
@@ -25,6 +26,12 @@ if (color == "green") { // everything is up to date!
         .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
         .parent()
         .attr("href", swhurl);
+}
+else if (color == "red") { // we did not find this project (probably a private project)
+    $(".button")
+        .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+        .parent()
+        .attr("href", swhhelp);
 }
 else { // we propose to save the project   
     $(".button").click(function(){

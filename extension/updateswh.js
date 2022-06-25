@@ -22,7 +22,7 @@ var settings = {}
  *
  * Color code:
  *  
- *    - red    : should never happen: the forge API request fails on the project
+ *    - red    : the forge API request fails on the project, typically for private projects
  *    - grey   : project unknown in Software Heritage
  *    - yellow : project known in Software Heritage, but changed since last visit
  *    - green  : project known in Software Heritage, not changed since last visit
