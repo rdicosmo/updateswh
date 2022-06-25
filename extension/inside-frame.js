@@ -33,6 +33,9 @@ else { // we propose to save the project
 		.done(function(resp){
 		    $(".button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
 		    devLog("Successful " + swhsaveurl);
+		    if (settings && settings.showrequest){
+			devLog("Showing request status in a new tab")
+			browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})};
 		})
 		.fail(function(resp){
 		    $(".button").removeClass("yellow").addClass("red");
