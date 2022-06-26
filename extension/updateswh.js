@@ -92,14 +92,29 @@ function setupGitHub(url,pattern,type){
     };
 }
 
+function setupGitLab(url,pattern,type){
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//,"")); // path-encoded user+project fragment
+    var forgeapiurl = "https://gitlab.com/api/v4/projects/" + userproject;
+    devLog("Setting up GitLab: " + type);
+    return {
+	projecturl : projecturl,
+	userproject : userproject,
+	forgeapiurl : forgeapiurl,
+	forgename : type,
+        lastupdate: (function (resp) {return resp.last_activity_at})
+    };
+}
+
+
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
 // order is important: first match will be used!
 // FIXME: complete setup functions
 
 var forgehandlers = [
-    {pattern: /http.*:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub},
-//    {pattern: /http.*:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab},
+    {pattern: /http.*:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub },
+    {pattern: /http.*:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
 //    {pattern: /http.*:\/\/[^\/]*gitlab[^\/]*\/[^\/]*\/[^\/]+/ , type: 'GitLab instance', handler: setupGitLabinstance},
     ]
 

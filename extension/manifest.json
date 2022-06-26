@@ -27,7 +27,9 @@
     {
       "matches": [
 	  "*://*.github.com/*",
-	  "*://github.com/*"    
+	  "*://github.com/*",
+	  "*://*.gitlab.com/*",
+	  "*://gitlab.com/*"    
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
@@ -43,7 +45,9 @@
 	  "resources": [ "updateswh.html" ],
 	  "matches": [
 	      "*://*.github.com/*",
-	      "*://github.com/*"
+	      "*://github.com/*",
+	      "*://*.gitlab.com/*",
+	      "*://gitlab.com/*"
 	  ]
       }
   ],
@@ -56,6 +60,8 @@
   ],
   "host_permissions": [
       "*://*.github.com/*",
-      "*://github.com/*"
+      "*://github.com/*",
+      "*://*.gitlab.com/*",
+      "*://gitlab.com/*"
   ]
 }
