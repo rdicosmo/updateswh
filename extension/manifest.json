@@ -36,7 +36,7 @@
     }
   ],
   "content_security_policy": {
-      "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'"
+      "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'; connect-src 'self' https://archive.softwareheritage.org/"
   },
   "web_accessible_resources": [
       {
