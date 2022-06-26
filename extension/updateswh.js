@@ -34,6 +34,7 @@ function testupdateforge(url,forgespecs) {
     var userproject = forgespecs.userproject;
     var forgeapiurl = forgespecs.forgeapiurl;
     var forgename   = forgespecs.forgename;
+    var lastupdate  = forgespecs.lastupdate;
     
     // fixed parameters
     var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest";
@@ -44,11 +45,11 @@ function testupdateforge(url,forgespecs) {
         isComplete: false, // flag to record completion of the following code that is asynchronous
         color: "grey"
     }
-    $.getJSON(forgeapiurl) // get last update time from GitHub
+    $.getJSON(forgeapiurl) // get repository information from the forge
         .done(function(resp){
-	    forgelastupdate = resp.pushed_at;
+	    forgelastupdate = lastupdate(resp);
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
-	    $.getJSON(swhapiurl) // get last visit time from SWH <-- all this is generic, get it out from here!
+	    $.getJSON(swhapiurl)
 		.done(function(resp){
 		    swhlastupdate = resp.date;
 		    devLog("call to SWH API returned: ", swhlastupdate);
@@ -86,7 +87,8 @@ function setupGitHub(url,pattern,type){
 	projecturl : projecturl,
 	userproject : userproject,
 	forgeapiurl : forgeapiurl,
-	forgename : type
+	forgename : type,
+	lastupdate: (function (resp) {return resp.pushed_at})
     };
 }
 
@@ -169,7 +171,7 @@ function handle(url) {
 	    devLog("Match " + url + " with " + fh.type);
             result=getandshowstatus(url,fh.handler(url,fh.pattern,fh.type));
 	    return false
-        } else {devLog("No match " + url + " on " + fh.type)}
+        } else {devLog("No match " + url + " on " + fh.type); return true}
     });
     return result;
 }
