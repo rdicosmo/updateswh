@@ -4,7 +4,7 @@ if (typeof chrome !== "undefined"){
 
 var devLog = function(str, obj){
     // only log to console if we're in Chrome with Debug Mode enabled.
-    if (settings && settings.swhdebug && navigator.userAgent.indexOf("Chrome") > -1){
+    if (settings && settings.swhdebug){
         console.log("updateswh: " + str, obj)
     }
 }
