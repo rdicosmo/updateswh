@@ -37,7 +37,7 @@ function testupdateforge(url,forgespecs) {
     var lastupdate  = forgespecs.lastupdate;
     
     // fixed parameters
-    var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest";
+    var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
     var forgelastupdate = "";
     var swhlastupdate = "";
     var results = {
@@ -58,7 +58,7 @@ function testupdateforge(url,forgespecs) {
 		})
 		.fail(function(resp){
 		    devLog("call to SWH API failed", resp);
-		    results.color="grey";
+		    results.color="grey"; // FIXME: analyze the reason of the failure before setting the color
 		})
 		.always(function(resp){
 		    devLog("call to SWH API finished", resp);
