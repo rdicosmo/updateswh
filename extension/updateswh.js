@@ -56,8 +56,8 @@ function testupdateforge(url,forgespecs) {
 		    if (swhlastupdate >= forgelastupdate) {results.color = "green"}
 		    else {results.color = "yellow"}
 		})
-		.fail(function(resp){
-		    devLog("call to SWH API failed", resp);
+		.fail(function(resp, texstatus, error){
+		    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
 		    results.color="grey"; // FIXME: analyze the reason of the failure before setting the color
 		})
 		.always(function(resp){
