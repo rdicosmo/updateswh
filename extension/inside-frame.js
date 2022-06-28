@@ -44,9 +44,10 @@ else { // we propose to save the project
 			devLog("Showing request status in a new tab")
 			browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})};
 		})
-		.fail(function(resp){
-		    $(".button").removeClass("yellow").addClass("red");
-		    devLog("Failed " + swhsaveurl);
+		.fail(function(resp,texstatus,error){
+		    $(".button").removeClass("yellow").removeClass("grey").addClass("red");
+    		    devLog("Call to SWH save API failed, status: " + texstatus + ", error: " + error + ".", resp);
+		    devLog("Failed on url " + swhsaveurl);
 		})
 		.always(function(resp){
 		    devLog("Completed " + swhsaveurl);
