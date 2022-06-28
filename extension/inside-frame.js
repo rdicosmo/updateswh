@@ -41,8 +41,11 @@ else { // we propose to save the project
 		    $(".button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
 		    devLog("Successful " + swhsaveurl);
 		    if (settings && settings.showrequest){
-			devLog("Showing request status in a new tab")
-			browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})};
+			devLog("Showing request status in a new tab");
+			browser.runtime.sendMessage({
+			    "type":"createtab",
+			    "url": "https://archive.softwareheritage.org/save/list/"})};
+			//browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
 		})
 		.fail(function(resp,texstatus,error){
 		    $(".button").removeClass("yellow").removeClass("grey").addClass("red");

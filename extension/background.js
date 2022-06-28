@@ -11,3 +11,14 @@ browser.runtime.onInstalled.addListener(function (object) {
         showWelcomePage()
     }
 });
+
+function browseraction(data,sender) {
+    console.log("Got request to create tab", data,sender);
+    if (data.type = "createtab") {
+	browser.tabs.create({url: data.url})
+    }
+};
+
+browser.runtime.onMessage.addListener(browseraction);
+
+
