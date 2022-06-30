@@ -106,6 +106,22 @@ function setupGitLab(url,pattern,type){
     };
 }
 
+function setupGitLabInstance(url,pattern,type){
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var forgeprotocol = projecturl.match(/^http[^:]*:\/\//);
+    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol,"").replace(/\/.*/,"/");
+    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl,"")); // path-encoded user+project fragment
+    var forgeapiurl = forgebaseurl + "api/v4/projects/" + userproject;
+    devLog("Setting up GitLab instance at: " + forgebaseurl);
+    return {
+	projecturl : projecturl,
+	userproject : userproject,
+	forgeapiurl : forgeapiurl,
+	forgename : type,
+        lastupdate: (function (resp) {return resp.last_activity_at})
+    };
+}
+
 
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
@@ -113,9 +129,10 @@ function setupGitLab(url,pattern,type){
 // FIXME: complete setup functions
 
 var forgehandlers = [
-    {pattern: /http.*:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub },
-    {pattern: /http.*:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
-//    {pattern: /http.*:\/\/[^\/]*gitlab[^\/]*\/[^\/]*\/[^\/]+/ , type: 'GitLab instance', handler: setupGitLabinstance},
+    {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub },
+    {pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
+    // heuristic: we handle gitlab.*.* as a GitLab instance
+    {pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in" , type: 'GitLab instance', handler: setupGitLabInstance},
     ]
 
 // Get the status of the repository by polling the results of the handler until
@@ -182,7 +199,7 @@ function handle(url) {
     // dispatch based on the url
     var result = "";
     forgehandlers.every(function(fh){
-        if (url.match(fh.pattern)) {
+        if (url.match(fh.pattern) && (fh.reject==null || ! url.match(fh.reject))) {
 	    devLog("Match " + url + " with " + fh.type);
             result=getandshowstatus(url,fh.handler(url,fh.pattern,fh.type));
 	    return false

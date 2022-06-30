@@ -1,6 +1,6 @@
 {
   "name": "UpdateSWH",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "manifest_version": 2,
   "description": "Check archival state of a source code repository and propose to update it if needed.",
   "icons": {
@@ -28,11 +28,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-	  "*://*.github.com/*",
-	  "*://github.com/*",
-	  "*://*.gitlab.com/*",
-	  "*://gitlab.com/*"
+	"matches": [
+		"<all_urls>"
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
@@ -47,11 +44,7 @@
     "chrome_style": true
   },
   "permissions": [
-      "*://*.github.com/*",
-      "*://github.com/*",
-      "*://*.gitlab.com/*",
-      "*://gitlab.com/*",
-      "*://archive.softwareheritage.org/*",
+      "<all_urls>",
       "storage"
   ]
 }
