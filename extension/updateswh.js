@@ -128,7 +128,7 @@ function setupGitLabInstance(url,pattern,type){
 // FIXME: complete setup functions
 
 var forgehandlers = [
-    {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , type: 'GitHub', handler: setupGitHub },
+    {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/github.com\/(features|marketplace)", type: 'GitHub', handler: setupGitHub },
     {pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
     // heuristic: we handle gitlab.*.* as a GitLab instance
     {pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in" , type: 'GitLab instance', handler: setupGitLabInstance},
