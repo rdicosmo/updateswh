@@ -80,7 +80,7 @@ function testupdateforge(url,forgespecs) {
 
 function setupGitHub(url,pattern,type){
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/http.*:\/\/github.com\//,""); // this is the user+project fragment
+    var userproject = projecturl.replace(/https?:\/\/github.com\//,""); // this is the user+project fragment
     var forgeapiurl = "https://api.github.com/repos/" + userproject;
     return {
 	projecturl : projecturl,
@@ -107,7 +107,7 @@ function setupGitLab(url,pattern,type){
 
 function setupGitLabInstance(url,pattern,type){
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var forgeprotocol = projecturl.match(/^http[^:]*:\/\//);
+    var forgeprotocol = projecturl.match(/^https?:\/\//);
     var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol,"").replace(/\/.*/,"/");
     var userproject = encodeURIComponent(projecturl.replace(forgebaseurl,"")); // path-encoded user+project fragment
     var forgeapiurl = forgebaseurl + "api/v4/projects/" + userproject;
