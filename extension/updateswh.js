@@ -137,8 +137,8 @@ function setupGitLabInstance(url,pattern,type){
 
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
+// the reject regex allows to filter out urls that are surely not project ones
 // order is important: first match will be used!
-// FIXME: complete setup functions
 
 var forgehandlers = [
     {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/github.com\/(features|marketplace)", type: 'GitHub', handler: setupGitHub },
