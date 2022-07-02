@@ -91,6 +91,19 @@ function setupGitHub(url,pattern,type){
     };
 }
 
+function setupBitbucket(url,pattern,type){
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//,""); // this is the user+project fragment
+    var forgeapiurl = "https://api.bitbucket.org/2.0/repositories/" + userproject;
+    return {
+	projecturl : projecturl,
+	userproject : userproject,
+	forgeapiurl : forgeapiurl,
+	forgename : type,
+	lastupdate: (function (resp) {return resp.updated_on})
+    };
+}
+
 function setupGitLab(url,pattern,type){
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
     var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//,"")); // path-encoded user+project fragment
@@ -129,6 +142,7 @@ function setupGitLabInstance(url,pattern,type){
 
 var forgehandlers = [
     {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/github.com\/(features|marketplace)", type: 'GitHub', handler: setupGitHub },
+    {pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)" , type: 'Bitbucket', handler: setupBitbucket},
     {pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
     // heuristic: we handle gitlab.*.* as a GitLab instance
     {pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in" , type: 'GitLab instance', handler: setupGitLabInstance},
