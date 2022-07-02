@@ -48,7 +48,15 @@ function testupdateforge(url,forgespecs) {
         .done(function(resp){
 	    forgelastupdate = lastupdate(resp);
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
-	    $.getJSON(swhapiurl)
+	    $.ajax({
+		url: swhapiurl,
+		dataType: "json",
+		type: 'GET',
+		beforeSend: function (xhr) {
+		    if (settings.swhtoken != '') {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
+		}
+	    })
 		.done(function(resp){
 		    swhlastupdate = resp.date;
 		    devLog("call to SWH API returned: ", swhlastupdate);
