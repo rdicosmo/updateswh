@@ -48,7 +48,7 @@ else { // we propose to save the project
 			//browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
 		})
 		.fail(function(resp,texstatus,error){
-		    $(".button").removeClass("yellow").removeClass("grey").addClass("red");
+		    $(".button").removeClass("yellow").removeClass("grey").addClass("red").attr("href", swhhelp);
     		    devLog("Call to SWH save API failed, status: " + texstatus + ", error: " + error + ".", resp);
 		    devLog("Failed on url " + swhsaveurl);
 		})
