@@ -36,8 +36,17 @@ else if (color == "red") { // we did not find this project (probably a private p
 else { // we propose to save the project   
     $(".button").click(function(){
 	if (!swhsaverequested){ // ensure we only request saving once
-	    $.post(swhsaveurl, function(data, status, xhr){swhsaverequested=true},)
+	    $.ajax({
+		url: swhsaveurl,
+		dataType: "json",
+		type: 'POST',
+		beforeSend: function (xhr) {
+		    if (settings.swhtoken != '') {
+			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
+		}
+	    })
 		.done(function(resp){
+		    swhsaverequested=true;
 		    $(".button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
 		    devLog("Successful " + swhsaveurl);
 		    if (settings && settings.showrequest){
