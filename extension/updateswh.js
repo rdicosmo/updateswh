@@ -319,7 +319,7 @@ function runWithSettings() {
     var fa = document.createElement("style");
     fa.rel = "stylesheet";
     fa.textContent = '@font-face { font-family: FontAwesome; src: url("' +
-        chrome.extension.getURL("fonts/fontawesome-webfont.woff2") +
+        browser.runtime.getURL("fonts/fontawesome-webfont.woff2") +
         '"); }';
     document.head.appendChild(fa);
 
