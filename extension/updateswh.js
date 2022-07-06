@@ -1,40 +1,41 @@
-
-if (chrome){
+if (chrome) {
     browser = chrome
 }
 
 
-var devLog = function(str, obj){
-    if (settings && settings.swhdebug){
+var devLog = function (str, obj) {
+    if (settings && settings.swhdebug) {
         console.log("updateswh: " + str, obj)
     }
 }
-devLog("updateswh is running")
+
+devLog("updateswh is running");
 
 // global variables:
-var iframeIsInserted = false
-var settings = {}
+var iconInserted = false;
+var settings = {};
+var swhsaverequested = false;
 
 /***********************************************************************************
  *
  * Generic code to check a project from a forge in the Software Heritage archive
  *
  * Color code:
- *  
+ *
  *    - red    : the forge API request fails on the project, typically for private projects
  *    - grey   : project unknown in Software Heritage
  *    - yellow : project known in Software Heritage, but changed since last visit
  *    - green  : project known in Software Heritage, not changed since last visit
- * 
+ *
  ************************************************************************************/
 
-function testupdateforge(url,forgespecs) {
-    var projecturl  = forgespecs.projecturl;
+function testupdateforge(url, forgespecs) {
+    var projecturl = forgespecs.projecturl;
     var userproject = forgespecs.userproject;
     var forgeapiurl = forgespecs.forgeapiurl;
-    var forgename   = forgespecs.forgename;
-    var lastupdate  = forgespecs.lastupdate;
-    
+    var forgename = forgespecs.forgename;
+    var lastupdate = forgespecs.lastupdate;
+
     // fixed parameters
     var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
     var forgelastupdate = "";
@@ -45,37 +46,41 @@ function testupdateforge(url,forgespecs) {
         color: "grey"
     }
     $.getJSON(forgeapiurl) // get repository information from the forge
-        .done(function(resp){
-	    forgelastupdate = lastupdate(resp);
+        .done(function (resp) {
+            forgelastupdate = lastupdate(resp);
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
-	    $.ajax({
-		url: swhapiurl,
-		dataType: "json",
-		type: 'GET',
-		beforeSend: function (xhr) {
-		    if (settings.swhtoken) {
-			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
-		}
-	    })
-		.done(function(resp){
-		    swhlastupdate = resp.date;
-		    devLog("call to SWH API returned: ", swhlastupdate);
-		    if (swhlastupdate >= forgelastupdate) {results.color = "green"}
-		    else {results.color = "yellow"}
-		})
-		.fail(function(resp, texstatus, error){
-		    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
-		    results.color="grey"; // FIXME: analyze the reason of the failure before setting the color
-		})
-		.always(function(resp){
-		    devLog("call to SWH API finished", resp);
-		    results.isComplete=true;
-		})
+            $.ajax({
+                    url: swhapiurl,
+                    dataType: "json",
+                    type: 'GET',
+                    beforeSend: function (xhr) {
+                        if (settings.swhtoken) {
+                            xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);
+                        }
+                    }
+                })
+                .done(function (resp) {
+                    swhlastupdate = resp.date;
+                    devLog("call to SWH API returned: ", swhlastupdate);
+                    if (swhlastupdate >= forgelastupdate) {
+                        results.color = "green"
+                    } else {
+                        results.color = "yellow"
+                    }
+                })
+                .fail(function (resp, texstatus, error) {
+                    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
+                    results.color = "grey"; // FIXME: analyze the reason of the failure before setting the color
+                })
+                .always(function (resp) {
+                    devLog("call to SWH API finished", resp);
+                    results.isComplete = true;
+                })
         })
-	.fail(function(resp){
-	    devLog("call to " + forgename + " API failed", resp);
-	    results.color="red";
-	    results.isComplete=true;
+        .fail(function (resp) {
+            devLog("call to " + forgename + " API failed", resp);
+            results.color = "red";
+            results.isComplete = true;
         });
     return results;
 }
@@ -86,59 +91,67 @@ function testupdateforge(url,forgespecs) {
  *
  ************************************************************************************/
 
-function setupGitHub(url,pattern,type){
+function setupGitHub(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/github.com\//,""); // this is the user+project fragment
+    var userproject = projecturl.replace(/https?:\/\/github.com\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.github.com/repos/" + userproject;
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-	lastupdate: (function (resp) {return resp.pushed_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.pushed_at
+        })
     };
 }
 
-function setupBitbucket(url,pattern,type){
+function setupBitbucket(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//,""); // this is the user+project fragment
+    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.bitbucket.org/2.0/repositories/" + userproject;
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-	lastupdate: (function (resp) {return resp.updated_on})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.updated_on
+        })
     };
 }
 
-function setupGitLab(url,pattern,type){
+function setupGitLab(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//,"")); // path-encoded user+project fragment
+    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//, "")); // path-encoded user+project fragment
     var forgeapiurl = "https://gitlab.com/api/v4/projects/" + userproject;
     devLog("Setting up GitLab: " + type);
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-        lastupdate: (function (resp) {return resp.last_activity_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.last_activity_at
+        })
     };
 }
 
-function setupGitLabInstance(url,pattern,type){
+function setupGitLabInstance(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
     var forgeprotocol = projecturl.match(/^https?:\/\//);
-    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol,"").replace(/\/.*/,"/");
-    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl,"")); // path-encoded user+project fragment
+    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol, "").replace(/\/.*/, "/");
+    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl, "")); // path-encoded user+project fragment
     var forgeapiurl = forgebaseurl + "api/v4/projects/" + userproject;
     devLog("Setting up GitLab instance at: " + forgebaseurl);
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-        lastupdate: (function (resp) {return resp.last_activity_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.last_activity_at
+        })
     };
 }
 
@@ -148,28 +161,46 @@ function setupGitLabInstance(url,pattern,type){
 // the reject regex allows to filter out urls that are surely not project ones
 // order is important: first match will be used!
 
-var forgehandlers = [
-    {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/github.com\/(features|marketplace)", type: 'GitHub', handler: setupGitHub },
-    {pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)" , type: 'Bitbucket', handler: setupBitbucket},
-    {pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
+var forgehandlers = [{
+        pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/github.com\/(features|marketplace)",
+        type: 'GitHub',
+        handler: setupGitHub
+    },
+    {
+        pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)",
+        type: 'Bitbucket',
+        handler: setupBitbucket
+    },
+    {
+        pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/,
+        type: 'GitLab',
+        handler: setupGitLab
+    },
     // heuristic: we handle gitlab.*.* as a GitLab instance
-    {pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in" , type: 'GitLab instance', handler: setupGitLabInstance},
-    ]
+    {
+        pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in",
+        type: 'GitLab instance',
+        handler: setupGitLabInstance
+    },
+]
 
 // Get the status of the repository by polling the results of the handler until
-// its work is completed, then show the result with the iframe and quit.
+// its work is completed, then show the result with the save icon and quit.
 
-function getandshowstatus(url,forgespecs){
-    var results = testupdateforge(url,forgespecs);
-    var resultsChecker=setInterval(function(){
-        if (results.isComplete){
-	    // display button using an iframe named with the color and the project url
-            insertIframe(results.color, results.projecturl)
+function getandshowstatus(url, forgespecs) {
+    var results = testupdateforge(url, forgespecs);
+    var resultsChecker = setInterval(function () {
+        if (results.isComplete) {
+            // display button using an icon named with the color and the project url
+            insertSaveIcon(results.color, results.projecturl)
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
     return results;
-}     
+}
 
 /***********************************************************************************
  *
@@ -177,33 +208,79 @@ function getandshowstatus(url,forgespecs){
  *
  ************************************************************************************/
 
+function insertSaveIcon(color, url) {
 
-function insertIframe(name, url){
-    var iframe = document.createElement('iframe');
-
-    // make sure we are not inserting iframe again and again
-    if (iframeIsInserted){
-        return false
+    // make sure we are not inserting icon again and again
+    if (iconInserted) {
+        return false;
     }
 
-    iframe.src = browser.runtime.getURL('updateswh.html');
+    var saveButton = $(
+        '<div class="swh-save-button">' +
+        '   <div class="swh-save-icon">' +
+        '       <i class="fa fa-save fa-3x"></i>' +
+        '   </div>' +
+        '</div>');
 
-    iframe.style.height = "50px";
-    iframe.style.width = '50px';
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.top = '33%';
-    iframe.scrolling = 'no';
-    iframe.style.border = '0';
-    iframe.style.zIndex = '9999999999';
-    iframe.style.display = 'none;'
-    iframe.id = "updateswh";
+    $('body').append(saveButton);
 
-    // set a custom name and URL
-    iframe.name = name + "#" + encodeURI(url)
+    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo" // documentation about missinig repositories (typically private ones)
+    var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url)
+    var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/"
 
-    document.documentElement.appendChild(iframe);
-    iframeIsInserted = true
+    if (color == "green") { // everything is up to date!
+        $(".swh-save-button")
+            .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+            .parent()
+            .attr("href", swhurl);
+    } else if (color == "red") { // we did not find this project (probably a private project)
+        $(".swh-save-button")
+            .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+            .parent()
+            .attr("href", swhhelp);
+    } else { // we propose to save the project
+        $(".swh-save-button").click(function () {
+            if (!swhsaverequested) { // ensure we only request saving once
+                $.ajax({
+                        url: swhsaveurl,
+                        dataType: "json",
+                        type: 'POST',
+                        beforeSend: function (xhr) {
+                            if (settings.swhtoken) {
+                                xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);
+                            }
+                        }
+                    })
+                    .done(function (resp) {
+                        swhsaverequested = true;
+                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
+                        devLog("Successful " + swhsaveurl);
+                        if (settings && settings.showrequest) {
+                            devLog("Showing request status in a new tab");
+                            browser.runtime.sendMessage({
+                                "type": "createtab",
+                                "url": "https://archive.softwareheritage.org/save/list/"
+                            })
+                        };
+                        //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
+                    })
+                    .fail(function (resp, texstatus, error) {
+                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("red").attr("href", swhhelp);
+                        devLog("Call to SWH save API failed, status: " + texstatus + ", error: " + error + ".", resp);
+                        devLog("Failed on url " + swhsaveurl);
+                    })
+                    .always(function (resp) {
+                        devLog("Completed " + swhsaveurl);
+                    })
+            }
+        });
+    }
+
+    $(".swh-save-button").fadeIn();
+
+    $(".swh-save-button").addClass(color)
+
+    iconInserted = true
 }
 
 /***********************************************************************************
@@ -219,44 +296,38 @@ function insertIframe(name, url){
 function handle(url) {
     // dispatch based on the url
     var result = "";
-    forgehandlers.every(function(fh){
-        if (url.match(fh.pattern) && (fh.reject==null || ! url.match(fh.reject))) {
-	    devLog("Match " + url + " with " + fh.type);
-            result=getandshowstatus(url,fh.handler(url,fh.pattern,fh.type));
-	    return false
-        } else {devLog("No match " + url + " on " + fh.type); return true}
+    forgehandlers.every(function (fh) {
+        if (url.match(fh.pattern) && (fh.reject == null || !url.match(fh.reject))) {
+            devLog("Match " + url + " with " + fh.type);
+            result = getandshowstatus(url, fh.handler(url, fh.pattern, fh.type));
+            return false
+        } else {
+            devLog("No match " + url + " on " + fh.type);
+            return true
+        }
     });
     return result;
 }
 
-function run () {
+function run() {
     handle(window.location.href);
 }
-			 
-function runWithSettings(){
-    browser.storage.local.get(null, function(items){
+
+function runWithSettings() {
+    // extension bundled webfont URL is not the same for Chrome and Firefox so we inject
+    // the font-face dynamically to avoid error message in the console
+    var fa = document.createElement("style");
+    fa.rel = "stylesheet";
+    fa.textContent = '@font-face { font-family: FontAwesome; src: url("' +
+        chrome.extension.getURL("fonts/fontawesome-webfont.woff2") +
+        '"); }';
+    document.head.appendChild(fa);
+
+    browser.storage.local.get(null, function (items) {
         settings = items
         devLog("got settings", settings)
         run()
     });
 }
 
-runWithSettings()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+runWithSettings();

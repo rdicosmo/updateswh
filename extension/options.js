@@ -1,4 +1,4 @@
-if (typeof(chrome) !== "undefined"){
+if (typeof (chrome) !== "undefined") {
     browser = chrome
 }
 
@@ -16,7 +16,7 @@ function save_options() {
     browser.storage.local.set({
         showrequest: showrequest
     })
-    
+
     var swhtoken = document.getElementById('swhtoken').value;
 
     browser.storage.local.set({
@@ -26,7 +26,7 @@ function save_options() {
     var status = document.getElementById('status');
     status.textContent = 'Preferences saved.';
 
-    setTimeout(function(){
+    setTimeout(function () {
         status.textContent = ''
     }, 1000)
 }
@@ -36,17 +36,17 @@ function save_options() {
 function restore_options() {
     browser.storage.local.get({
         swhdebug: false
-    }, function(items) {
+    }, function (items) {
         document.getElementById('swh-debug').checked = items.swhdebug;
     });
     browser.storage.local.get({
         showrequest: false
-    }, function(items) {
+    }, function (items) {
         document.getElementById('showrequest').checked = items.showrequest;
     });
     browser.storage.local.get({
         swhtoken: null
-    }, function(items) {
+    }, function (items) {
         document.getElementById('swhtoken').value = items.swhtoken;
     });
 }
