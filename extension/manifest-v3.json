@@ -28,6 +28,10 @@
       "matches": [
         "<all_urls>"
       ],
+      "css": [
+        "css/updateswh.css",
+        "css/font-awesome.min.css"
+      ],
       "js": [
         "js/jquery-3.6.0.min.js",
         "updateswh.js"
@@ -39,11 +43,11 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "updateswh.html"
-      ],
       "matches": [
         "<all_urls>"
+      ],
+      "resources": [
+        "fonts/fontawesome-webfont.woff2"
       ]
     }
   ],

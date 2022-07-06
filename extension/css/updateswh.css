@@ -1,9 +1,6 @@
-body {
+.swh-save-button {
     padding: 0;
     margin: 0;
-}
-
-.button {
     color: #fff;
     font-size: 12px;
     font-family:  "Helvetica", "Arial", "sans-serif";
@@ -20,54 +17,48 @@ body {
     align-items: center;
     justify-content: center;
     border-right: none;
-    background: #fff;
+    background: transparent;
+    height: 50px;
+    width: 50px;
+    position: fixed;
+    right: -5px;
+    top: 33%;
+    border: 0;
+    z-index: 9999999999;
 }
 
-.button .fa-save {
-    display: block;
-}
-
-div.icon {
-    font-size: 22px;
+.swh-save-icon {
     margin-left: 3px;
     margin-top: 2px;
 }
-
-div.label {
+.swh-save-button.label {
     margin-top: 4px;
 }
-
-.button:hover {
-    padding-right: 2px;
+.swh-save-button:hover {
+    right: 0;
 }
 
-.button.green {
+.swh-save-button.green {
     background: #20e168;
 }
-
-.button.lightgreen {
+.swh-save-button.lightgreen {
     background: #90ee90;
 }
-
-.button.grey {
+.swh-save-button.grey {
     background: #D3D3D3;
 }
-
-.button.yellow {
+.swh-save-button.yellow {
     background: #ffff00;
 }
-
-.button.red {
+.swh-save-button.red {
     background: #ff0000;
+
 }
 
-/*The button color for what we couldn't find in SWH*/
 
-.button.grey {
+/*The button color for origin we couldn't find in SWH*/
+
+.swh-save-button.grey {
     border-right: none;
     background: #bbb;
-}
-
-.button.grey .fa-save {
-    display: block;
 }

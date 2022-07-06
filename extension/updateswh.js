@@ -8,11 +8,13 @@ var devLog = function (str, obj) {
         console.log("updateswh: " + str, obj)
     }
 }
-devLog("updateswh is running")
+
+devLog("updateswh is running");
 
 // global variables:
-var iframeIsInserted = false
-var settings = {}
+var iconInserted = false;
+var settings = {};
+var swhsaverequested = false;
 
 /***********************************************************************************
  *
@@ -186,14 +188,14 @@ var forgehandlers = [{
 ]
 
 // Get the status of the repository by polling the results of the handler until
-// its work is completed, then show the result with the iframe and quit.
+// its work is completed, then show the result with the save icon and quit.
 
 function getandshowstatus(url, forgespecs) {
     var results = testupdateforge(url, forgespecs);
     var resultsChecker = setInterval(function () {
         if (results.isComplete) {
-            // display button using an iframe named with the color and the project url
-            insertIframe(results.color, results.projecturl)
+            // display button using an icon named with the color and the project url
+            insertSaveIcon(results.color, results.projecturl)
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
@@ -206,33 +208,79 @@ function getandshowstatus(url, forgespecs) {
  *
  ************************************************************************************/
 
+function insertSaveIcon(color, url) {
 
-function insertIframe(name, url) {
-    var iframe = document.createElement('iframe');
-
-    // make sure we are not inserting iframe again and again
-    if (iframeIsInserted) {
-        return false
+    // make sure we are not inserting icon again and again
+    if (iconInserted) {
+        return false;
     }
 
-    iframe.src = browser.runtime.getURL('updateswh.html');
+    var saveButton = $(
+        '<div class="swh-save-button">' +
+        '   <div class="swh-save-icon">' +
+        '       <i class="fa fa-save fa-3x"></i>' +
+        '   </div>' +
+        '</div>');
 
-    iframe.style.height = "50px";
-    iframe.style.width = '50px';
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.top = '33%';
-    iframe.scrolling = 'no';
-    iframe.style.border = '0';
-    iframe.style.zIndex = '9999999999';
-    iframe.style.display = 'none;'
-    iframe.id = "updateswh";
+    $('body').append(saveButton);
 
-    // set a custom name and URL
-    iframe.name = name + "#" + encodeURI(url)
+    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo" // documentation about missinig repositories (typically private ones)
+    var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url)
+    var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/"
 
-    document.documentElement.appendChild(iframe);
-    iframeIsInserted = true
+    if (color == "green") { // everything is up to date!
+        $(".swh-save-button")
+            .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+            .parent()
+            .attr("href", swhurl);
+    } else if (color == "red") { // we did not find this project (probably a private project)
+        $(".swh-save-button")
+            .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+            .parent()
+            .attr("href", swhhelp);
+    } else { // we propose to save the project
+        $(".swh-save-button").click(function () {
+            if (!swhsaverequested) { // ensure we only request saving once
+                $.ajax({
+                        url: swhsaveurl,
+                        dataType: "json",
+                        type: 'POST',
+                        beforeSend: function (xhr) {
+                            if (settings.swhtoken) {
+                                xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);
+                            }
+                        }
+                    })
+                    .done(function (resp) {
+                        swhsaverequested = true;
+                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
+                        devLog("Successful " + swhsaveurl);
+                        if (settings && settings.showrequest) {
+                            devLog("Showing request status in a new tab");
+                            browser.runtime.sendMessage({
+                                "type": "createtab",
+                                "url": "https://archive.softwareheritage.org/save/list/"
+                            })
+                        };
+                        //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
+                    })
+                    .fail(function (resp, texstatus, error) {
+                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("red").attr("href", swhhelp);
+                        devLog("Call to SWH save API failed, status: " + texstatus + ", error: " + error + ".", resp);
+                        devLog("Failed on url " + swhsaveurl);
+                    })
+                    .always(function (resp) {
+                        devLog("Completed " + swhsaveurl);
+                    })
+            }
+        });
+    }
+
+    $(".swh-save-button").fadeIn();
+
+    $(".swh-save-button").addClass(color)
+
+    iconInserted = true
 }
 
 /***********************************************************************************
@@ -266,6 +314,15 @@ function run() {
 }
 
 function runWithSettings() {
+    // extension bundled webfont URL is not the same for Chrome and Firefox so we inject
+    // the font-face dynamically to avoid error message in the console
+    var fa = document.createElement("style");
+    fa.rel = "stylesheet";
+    fa.textContent = '@font-face { font-family: FontAwesome; src: url("' +
+        chrome.extension.getURL("fonts/fontawesome-webfont.woff2") +
+        '"); }';
+    document.head.appendChild(fa);
+
     browser.storage.local.get(null, function (items) {
         settings = items
         devLog("got settings", settings)
@@ -273,4 +330,4 @@ function runWithSettings() {
     });
 }
 
-runWithSettings()
+runWithSettings();
