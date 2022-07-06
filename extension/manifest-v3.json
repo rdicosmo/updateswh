@@ -11,14 +11,14 @@
     "128": "img/icon-128.png"
   },
   "action": {
-      "default_title": "UpdateSWH",
-      "default_popup": "popup.html",
-      "default_icon": {
-	  "16": "/img/icon-16.png",
-          "32": "/img/icon-32.png",
-          "48": "/img/icon-48.png",
-          "128": "/img/icon-128.png"
-      }
+    "default_title": "UpdateSWH",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/img/icon-16.png",
+      "32": "/img/icon-32.png",
+      "48": "/img/icon-48.png",
+      "128": "/img/icon-128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -26,7 +26,7 @@
   "content_scripts": [
     {
       "matches": [
-	  "<all_urls>"
+        "<all_urls>"
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
@@ -35,24 +35,26 @@
     }
   ],
   "content_security_policy": {
-      "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'; connect-src 'self' https://archive.softwareheritage.org/"
+    "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'; connect-src 'self' https://archive.softwareheritage.org/"
   },
   "web_accessible_resources": [
-      {
-	  "resources": [ "updateswh.html" ],
-	  "matches": [
-	      "<all_urls>"
-	  ]
-      }
+    {
+      "resources": [
+        "updateswh.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
   },
   "permissions": [
-      "storage"
+    "storage"
   ],
   "host_permissions": [
-	  "<all_urls>"
+    "<all_urls>"
   ]
 }

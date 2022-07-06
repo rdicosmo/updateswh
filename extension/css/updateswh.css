@@ -1,67 +1,73 @@
-        body {
-            padding: 0;
-            margin: 0;
-        }
+body {
+    padding: 0;
+    margin: 0;
+}
 
-        .button {
-            color: #fff;
-            font-size: 12px;
-            font-family:  "Helvetica", "Arial", "sans-serif";
-            text-align: center;
-            margin: 0;
-            width: 35px;
-            height: 40px;
-            float: right;
-            border-radius: 40px 0 0 40px;
-            box-shadow: 0 1px 5px -1px #333;
-            cursor: pointer;
-            opacity: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-right: none;
-            background: #fff;
-        }
-        .button .fa-save {
-            display: block;
-        }
+.button {
+    color: #fff;
+    font-size: 12px;
+    font-family:  "Helvetica", "Arial", "sans-serif";
+    text-align: center;
+    margin: 0;
+    width: 35px;
+    height: 40px;
+    float: right;
+    border-radius: 40px 0 0 40px;
+    box-shadow: 0 1px 5px -1px #333;
+    cursor: pointer;
+    opacity: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: none;
+    background: #fff;
+}
 
-        div.icon {
-            font-size: 22px;
-            margin-left: 3px;
-            margin-top: 2px;
-        }
-        div.label {
-            margin-top: 4px;
-        }
-        .button:hover {
-            padding-right: 2px;
-        }
+.button .fa-save {
+    display: block;
+}
 
-        .button.green {
-            background: #20e168;
-        }
-        .button.lightgreen {
-            background: #90ee90;
-        }
-        .button.grey {
-            background: #D3D3D3;
-        }
-        .button.yellow {
-            background: #ffff00;
-        }
-        .button.red {
-            background: #ff0000;
+div.icon {
+    font-size: 22px;
+    margin-left: 3px;
+    margin-top: 2px;
+}
 
-        }
+div.label {
+    margin-top: 4px;
+}
 
+.button:hover {
+    padding-right: 2px;
+}
 
-        /*The button for we couldn't find in SWH*/
+.button.green {
+    background: #20e168;
+}
 
-        .button.grey {
-            border-right: none;
-            background: #bbb;
-        }
-        .button.grey .fa-save {
-            display: block;
-        }
+.button.lightgreen {
+    background: #90ee90;
+}
+
+.button.grey {
+    background: #D3D3D3;
+}
+
+.button.yellow {
+    background: #ffff00;
+}
+
+.button.red {
+    background: #ff0000;
+}
+
+/*The button color for what we couldn't find in SWH*/
+
+.button.grey {
+    border-right: none;
+    background: #bbb;
+}
+
+.button.grey .fa-save {
+    display: block;
+}

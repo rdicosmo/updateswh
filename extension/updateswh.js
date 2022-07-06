@@ -1,11 +1,10 @@
-
-if (chrome){
+if (chrome) {
     browser = chrome
 }
 
 
-var devLog = function(str, obj){
-    if (settings && settings.swhdebug){
+var devLog = function (str, obj) {
+    if (settings && settings.swhdebug) {
         console.log("updateswh: " + str, obj)
     }
 }
@@ -20,21 +19,21 @@ var settings = {}
  * Generic code to check a project from a forge in the Software Heritage archive
  *
  * Color code:
- *  
+ *
  *    - red    : the forge API request fails on the project, typically for private projects
  *    - grey   : project unknown in Software Heritage
  *    - yellow : project known in Software Heritage, but changed since last visit
  *    - green  : project known in Software Heritage, not changed since last visit
- * 
+ *
  ************************************************************************************/
 
-function testupdateforge(url,forgespecs) {
-    var projecturl  = forgespecs.projecturl;
+function testupdateforge(url, forgespecs) {
+    var projecturl = forgespecs.projecturl;
     var userproject = forgespecs.userproject;
     var forgeapiurl = forgespecs.forgeapiurl;
-    var forgename   = forgespecs.forgename;
-    var lastupdate  = forgespecs.lastupdate;
-    
+    var forgename = forgespecs.forgename;
+    var lastupdate = forgespecs.lastupdate;
+
     // fixed parameters
     var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
     var forgelastupdate = "";
@@ -45,37 +44,41 @@ function testupdateforge(url,forgespecs) {
         color: "grey"
     }
     $.getJSON(forgeapiurl) // get repository information from the forge
-        .done(function(resp){
-	    forgelastupdate = lastupdate(resp);
+        .done(function (resp) {
+            forgelastupdate = lastupdate(resp);
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
-	    $.ajax({
-		url: swhapiurl,
-		dataType: "json",
-		type: 'GET',
-		beforeSend: function (xhr) {
-		    if (settings.swhtoken) {
-			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
-		}
-	    })
-		.done(function(resp){
-		    swhlastupdate = resp.date;
-		    devLog("call to SWH API returned: ", swhlastupdate);
-		    if (swhlastupdate >= forgelastupdate) {results.color = "green"}
-		    else {results.color = "yellow"}
-		})
-		.fail(function(resp, texstatus, error){
-		    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
-		    results.color="grey"; // FIXME: analyze the reason of the failure before setting the color
-		})
-		.always(function(resp){
-		    devLog("call to SWH API finished", resp);
-		    results.isComplete=true;
-		})
+            $.ajax({
+                    url: swhapiurl,
+                    dataType: "json",
+                    type: 'GET',
+                    beforeSend: function (xhr) {
+                        if (settings.swhtoken) {
+                            xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);
+                        }
+                    }
+                })
+                .done(function (resp) {
+                    swhlastupdate = resp.date;
+                    devLog("call to SWH API returned: ", swhlastupdate);
+                    if (swhlastupdate >= forgelastupdate) {
+                        results.color = "green"
+                    } else {
+                        results.color = "yellow"
+                    }
+                })
+                .fail(function (resp, texstatus, error) {
+                    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
+                    results.color = "grey"; // FIXME: analyze the reason of the failure before setting the color
+                })
+                .always(function (resp) {
+                    devLog("call to SWH API finished", resp);
+                    results.isComplete = true;
+                })
         })
-	.fail(function(resp){
-	    devLog("call to " + forgename + " API failed", resp);
-	    results.color="red";
-	    results.isComplete=true;
+        .fail(function (resp) {
+            devLog("call to " + forgename + " API failed", resp);
+            results.color = "red";
+            results.isComplete = true;
         });
     return results;
 }
@@ -86,59 +89,67 @@ function testupdateforge(url,forgespecs) {
  *
  ************************************************************************************/
 
-function setupGitHub(url,pattern,type){
+function setupGitHub(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/github.com\//,""); // this is the user+project fragment
+    var userproject = projecturl.replace(/https?:\/\/github.com\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.github.com/repos/" + userproject;
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-	lastupdate: (function (resp) {return resp.pushed_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.pushed_at
+        })
     };
 }
 
-function setupBitbucket(url,pattern,type){
+function setupBitbucket(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//,""); // this is the user+project fragment
+    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.bitbucket.org/2.0/repositories/" + userproject;
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-	lastupdate: (function (resp) {return resp.updated_on})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.updated_on
+        })
     };
 }
 
-function setupGitLab(url,pattern,type){
+function setupGitLab(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//,"")); // path-encoded user+project fragment
+    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//, "")); // path-encoded user+project fragment
     var forgeapiurl = "https://gitlab.com/api/v4/projects/" + userproject;
     devLog("Setting up GitLab: " + type);
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-        lastupdate: (function (resp) {return resp.last_activity_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.last_activity_at
+        })
     };
 }
 
-function setupGitLabInstance(url,pattern,type){
+function setupGitLabInstance(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
     var forgeprotocol = projecturl.match(/^https?:\/\//);
-    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol,"").replace(/\/.*/,"/");
-    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl,"")); // path-encoded user+project fragment
+    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol, "").replace(/\/.*/, "/");
+    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl, "")); // path-encoded user+project fragment
     var forgeapiurl = forgebaseurl + "api/v4/projects/" + userproject;
     devLog("Setting up GitLab instance at: " + forgebaseurl);
     return {
-	projecturl : projecturl,
-	userproject : userproject,
-	forgeapiurl : forgeapiurl,
-	forgename : type,
-        lastupdate: (function (resp) {return resp.last_activity_at})
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.last_activity_at
+        })
     };
 }
 
@@ -148,28 +159,46 @@ function setupGitLabInstance(url,pattern,type){
 // the reject regex allows to filter out urls that are surely not project ones
 // order is important: first match will be used!
 
-var forgehandlers = [
-    {pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/github.com\/(features|marketplace)", type: 'GitHub', handler: setupGitHub },
-    {pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)" , type: 'Bitbucket', handler: setupBitbucket},
-    {pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/ , type: 'GitLab', handler: setupGitLab },
+var forgehandlers = [{
+        pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/github.com\/(features|marketplace)",
+        type: 'GitHub',
+        handler: setupGitHub
+    },
+    {
+        pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)",
+        type: 'Bitbucket',
+        handler: setupBitbucket
+    },
+    {
+        pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/,
+        type: 'GitLab',
+        handler: setupGitLab
+    },
     // heuristic: we handle gitlab.*.* as a GitLab instance
-    {pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/ , reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in" , type: 'GitLab instance', handler: setupGitLabInstance},
-    ]
+    {
+        pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in",
+        type: 'GitLab instance',
+        handler: setupGitLabInstance
+    },
+]
 
 // Get the status of the repository by polling the results of the handler until
 // its work is completed, then show the result with the iframe and quit.
 
-function getandshowstatus(url,forgespecs){
-    var results = testupdateforge(url,forgespecs);
-    var resultsChecker=setInterval(function(){
-        if (results.isComplete){
-	    // display button using an iframe named with the color and the project url
+function getandshowstatus(url, forgespecs) {
+    var results = testupdateforge(url, forgespecs);
+    var resultsChecker = setInterval(function () {
+        if (results.isComplete) {
+            // display button using an iframe named with the color and the project url
             insertIframe(results.color, results.projecturl)
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
     return results;
-}     
+}
 
 /***********************************************************************************
  *
@@ -178,11 +207,11 @@ function getandshowstatus(url,forgespecs){
  ************************************************************************************/
 
 
-function insertIframe(name, url){
+function insertIframe(name, url) {
     var iframe = document.createElement('iframe');
 
     // make sure we are not inserting iframe again and again
-    if (iframeIsInserted){
+    if (iframeIsInserted) {
         return false
     }
 
@@ -219,22 +248,25 @@ function insertIframe(name, url){
 function handle(url) {
     // dispatch based on the url
     var result = "";
-    forgehandlers.every(function(fh){
-        if (url.match(fh.pattern) && (fh.reject==null || ! url.match(fh.reject))) {
-	    devLog("Match " + url + " with " + fh.type);
-            result=getandshowstatus(url,fh.handler(url,fh.pattern,fh.type));
-	    return false
-        } else {devLog("No match " + url + " on " + fh.type); return true}
+    forgehandlers.every(function (fh) {
+        if (url.match(fh.pattern) && (fh.reject == null || !url.match(fh.reject))) {
+            devLog("Match " + url + " with " + fh.type);
+            result = getandshowstatus(url, fh.handler(url, fh.pattern, fh.type));
+            return false
+        } else {
+            devLog("No match " + url + " on " + fh.type);
+            return true
+        }
     });
     return result;
 }
 
-function run () {
+function run() {
     handle(window.location.href);
 }
-			 
-function runWithSettings(){
-    browser.storage.local.get(null, function(items){
+
+function runWithSettings() {
+    browser.storage.local.get(null, function (items) {
         settings = items
         devLog("got settings", settings)
         run()
@@ -242,21 +274,3 @@ function runWithSettings(){
 }
 
 runWithSettings()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

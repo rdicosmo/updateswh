@@ -14,10 +14,10 @@
     "default_title": "UpdateSWH",
     "default_popup": "popup.html",
     "default_icon": {
-	"16": "/img/icon-16.png",
-        "32": "/img/icon-32.png",
-        "48": "/img/icon-48.png",
-        "128": "/img/icon-128.png"
+      "16": "/img/icon-16.png",
+      "32": "/img/icon-32.png",
+      "48": "/img/icon-48.png",
+      "128": "/img/icon-128.png"
     }
   },
   "background": {
@@ -28,8 +28,8 @@
   },
   "content_scripts": [
     {
-	"matches": [
-		"<all_urls>"
+      "matches": [
+        "<all_urls>"
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
@@ -38,13 +38,15 @@
     }
   ],
   "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' https://archive.softwareheritage.org/",
-  "web_accessible_resources": [ "*.html" ],
+  "web_accessible_resources": [
+    "*.html"
+  ],
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
   },
   "permissions": [
-      "<all_urls>",
-      "storage"
+    "<all_urls>",
+    "storage"
   ]
 }
