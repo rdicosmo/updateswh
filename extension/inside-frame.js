@@ -41,7 +41,7 @@ else { // we propose to save the project
 		dataType: "json",
 		type: 'POST',
 		beforeSend: function (xhr) {
-		    if (settings.swhtoken != '') {
+		    if (settings.swhtoken) {
 			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
 		}
 	    })

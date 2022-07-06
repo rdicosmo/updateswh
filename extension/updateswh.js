@@ -53,7 +53,7 @@ function testupdateforge(url,forgespecs) {
 		dataType: "json",
 		type: 'GET',
 		beforeSend: function (xhr) {
-		    if (settings.swhtoken != '') {
+		    if (settings.swhtoken) {
 			xhr.setRequestHeader('Authorization', 'Bearer ' + settings.swhtoken);}
 		}
 	    })
