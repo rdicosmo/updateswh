@@ -17,7 +17,7 @@ that is not publicly accessible, and that naturally cannot be archived.
 ### Getting the extension for your browser
 
 For accessing the latest published version of the extension on the FireFox
-Add-ons and on the Chrome Web Store, see the webpage at
+Add-ons and on the Chrome Web Store, and more detailed usage instructions, see the webpage at
 https://www.softwareheritage.org/browser-extensions/
 
 ### Credits
@@ -33,3 +33,4 @@ Due to the ongoing transition to manifest version 3, there is currently
 one difference: for FireFox a manifest.json version 2 is provided, but
 for Google Chrome one needs to create a package using the version 3
 format provided in manifest-v3.json.
+The toplevel Makefile takes care of the appropriate reshuffling at package creation time.
