@@ -227,7 +227,8 @@ function insertSaveIcon(color, url) {
     var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo" // documentation about missinig repositories (typically private ones)
     var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url)
     var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/"
-
+    var swhsavelisturl = "https://archive.softwareheritage.org/save/list/"
+    
     if (color == "green") { // everything is up to date!
         $(".swh-save-button")
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
@@ -254,12 +255,15 @@ function insertSaveIcon(color, url) {
                     .done(function (resp) {
                         swhsaverequested = true;
                         $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
+			$(".swh-save-button").wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+			    .parent()
+			    .attr("href", swhsavelisturl);
                         devLog("Successful " + swhsaveurl);
                         if (settings && settings.showrequest) {
                             devLog("Showing request status in a new tab");
                             browser.runtime.sendMessage({
                                 "type": "createtab",
-                                "url": "https://archive.softwareheritage.org/save/list/"
+                                "url": swhsavelisturl
                             })
                         };
                         //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
