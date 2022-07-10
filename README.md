@@ -10,9 +10,16 @@ in which case clicking on the button opens a tab on the corresponding page of
 the archive, missing (grey) or not up to date (yellow), in which case clicking
 on the button triggers a save code now request.
 
+A brown color warns that the last archival visit did not succeed in full, so
+there may be issues that make archival not straightforward.
+
+An orange color indicates that the SWH rate limit has been hit: one needs to
+get and add an access token to overcome the limitation.
+
 A red color indicates that the API request of information for the repository
 did not succeed: this happens typically when one is visiting a repository
 that is not publicly accessible, and that naturally cannot be archived.
+
 
 ### Getting the extension for your browser
 

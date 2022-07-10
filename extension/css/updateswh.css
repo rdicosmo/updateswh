@@ -50,6 +50,12 @@
 .swh-save-button.yellow {
     background: #ffff00;
 }
+.swh-save-button.orange {
+    background: #ffA500;
+}
+.swh-save-button.brown {
+    background: #A52A2A;
+}
 .swh-save-button.red {
     background: #ff0000;
 

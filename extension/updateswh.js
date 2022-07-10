@@ -23,7 +23,9 @@ var swhsaverequested = false;
  * Color code:
  *
  *    - red    : the forge API request fails on the project, typically for private projects
+ *    - orange : the forge API request fails because we hit the rate limit
  *    - grey   : project unknown in Software Heritage
+ *    - brown  : project known in Software Heritage, but last visit failed
  *    - yellow : project known in Software Heritage, but changed since last visit
  *    - green  : project known in Software Heritage, not changed since last visit
  *
@@ -61,16 +63,23 @@ function testupdateforge(url, forgespecs) {
                 })
                 .done(function (resp) {
                     swhlastupdate = resp.date;
+		    swhlastupdatestatus = resp.status;
                     devLog("call to SWH API returned: ", swhlastupdate);
                     if (swhlastupdate >= forgelastupdate) {
                         results.color = "green"
                     } else {
                         results.color = "yellow"
-                    }
+                    };
+		    if (swhlastupdatestatus !="full") { // last update did not succeed
+			results.color = "brown"         // let's warn the user
+		    }
                 })
-                .fail(function (resp, texstatus, error) {
-                    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", resp);
-                    results.color = "grey"; // FIXME: analyze the reason of the failure before setting the color
+                .fail(function (xhr, texstatus, error) {
+                    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", xhr);
+		    if (xhr.status == 403) { // it seems we ran out of steam on the SWH API
+			restults.color = "orange"; // let's warn the user
+		    } else {
+			results.color = "grey";}
                 })
                 .always(function (resp) {
                     devLog("call to SWH API finished", resp);
@@ -235,6 +244,11 @@ function insertSaveIcon(color, url) {
             .parent()
             .attr("href", swhurl);
     } else if (color == "red") { // we did not find this project (probably a private project)
+        $(".swh-save-button")
+            .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+            .parent()
+            .attr("href", swhhelp);
+    } else if (color == "orange") { // we hit the rate limit
         $(".swh-save-button")
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
