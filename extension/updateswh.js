@@ -87,7 +87,7 @@ function testupdateforge(url, forgespecs) {
                 .fail(function (xhr, texstatus, error) {
                     devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", xhr);
 		    if (xhr.status == 403) { // it seems we ran out of steam on the SWH API
-			restults.color = "orange"; // let's warn the user
+			results.color = "orange"; // let's warn the user
 		    } else {
 			results.color = "grey";}
                 })
@@ -98,7 +98,11 @@ function testupdateforge(url, forgespecs) {
         })
         .fail(function (resp) {
             devLog("call to " + forgename + " API failed", resp);
-            results.color = "red";
+	    if (resp.status == 403) { // it seems we ran out of steam on the forge API
+		results.color = "orange"; // let's warn the user
+                devLog("Setting color to orange");
+	    } else {
+		results.color = "red";}
             results.isComplete = true;
         });
     return results;
