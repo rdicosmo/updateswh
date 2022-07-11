@@ -47,7 +47,17 @@ function testupdateforge(url, forgespecs) {
         isComplete: false, // flag to record completion of the following code that is asynchronous
         color: "grey"
     }
-    $.getJSON(forgeapiurl) // get repository information from the forge
+    $.ajax({ // get repository information from the forge
+        url: forgeapiurl,
+        dataType: "json",
+        type: 'GET',
+        beforeSend: function (xhr) { // add GitHub token if possible
+            if (settings.ghtoken && forgename == "GitHub") {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + settings.ghtoken);
+		devLog("Added GH token");
+            }
+        }
+    })
         .done(function (resp) {
             forgelastupdate = lastupdate(resp);
             devLog("call to " + forgename + " API returned: ", forgelastupdate);

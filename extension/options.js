@@ -23,6 +23,12 @@ function save_options() {
         swhtoken: swhtoken
     })
 
+    var ghtoken = document.getElementById('ghtoken').value;
+
+    browser.storage.local.set({
+        ghtoken: ghtoken
+    })
+
     var status = document.getElementById('status');
     status.textContent = 'Preferences saved.';
 
@@ -49,6 +55,11 @@ function restore_options() {
     }, function (items) {
         document.getElementById('swhtoken').value = items.swhtoken;
     });
+    browser.storage.local.get({
+        ghtoken: null
+    }, function (items) {
+        document.getElementById('ghtoken').value = items.ghtoken;
+    });
 }
 
 
@@ -58,4 +69,6 @@ document.getElementById('swh-debug').addEventListener('click',
 document.getElementById('showrequest').addEventListener('click',
     save_options);
 document.getElementById('swhtoken').addEventListener('input',
+    save_options);
+document.getElementById('ghtoken').addEventListener('input',
     save_options);
