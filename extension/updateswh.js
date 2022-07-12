@@ -10,7 +10,7 @@ var devLog = function (str, obj) {
 }
 
 // global variables:
-var iconInserted = false;
+var iconInsertedFor = "";
 var settings = {};
 var swhsaverequested = false;
 
@@ -230,11 +230,14 @@ function getandshowstatus(url, forgespecs) {
  ************************************************************************************/
 
 function insertSaveIcon(color, url) {
-
+    devLog("Inside insertSaveIcon, url is: " + url);
+    
     // make sure we are not inserting icon again and again
-    if (iconInserted) {
+    if (iconInsertedFor == url) {
+	devLog("Skipping insertion of icon for: " + url);
         return false;
     }
+    devLog("Inserting icon for: " + url);
 
     var saveButton = $(
         '<div class="swh-save-button">' +
@@ -310,7 +313,9 @@ function insertSaveIcon(color, url) {
 
     $(".swh-save-button").addClass(color)
 
-    iconInserted = true
+    iconInsertedFor = url
+    devLog("iconInsertedFor value is: " + iconInsertedFor + " for url: " + url);
+
 }
 
 /***********************************************************************************
