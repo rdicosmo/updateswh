@@ -9,8 +9,6 @@ var devLog = function (str, obj) {
     }
 }
 
-devLog("updateswh is running");
-
 // global variables:
 var iconInserted = false;
 var settings = {};
@@ -357,9 +355,12 @@ function runWithSettings() {
 
     browser.storage.local.get(null, function (items) {
         settings = items
-        devLog("got settings", settings)
-        run()
+        devLog("got settings in runWithSettings", settings);
+	devLog("updateswh is running");
     });
+    run()
 }
+
+
 
 runWithSettings();
