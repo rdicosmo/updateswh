@@ -363,7 +363,9 @@ function runWithSettings() {
         devLog("got settings in runWithSettings", settings);
 	devLog("updateswh is running");
     });
-    run()
+
+    // wait 200ms for the settings to get loaded
+    setTimeout(run, 200)
 }
 
 
