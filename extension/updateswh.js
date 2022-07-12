@@ -368,6 +368,34 @@ function runWithSettings() {
     setTimeout(run, 200)
 }
 
+// Add a mutation observer to trigger actions on changes
+// From Leonardo Ciaccio: https://stackoverflow.com/questions/3522090/event-when-window-location-href-changes
+// Restricted to GitHub (only case where it seems needed for now)
 
+var oldHref = document.location.href;
+
+window.onload = function() {
+    var bodyList = document.querySelector("body")
+
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (oldHref != document.location.href) {
+                oldHref = document.location.href;
+                /* Changed ! your code here */
+		console.log("mutation triggers call");
+		run()
+            }
+        });
+    });
+    
+    var config = {
+        childList: true,
+        subtree: true
+    };
+    if (oldHref.match(/^https?:\/\/github.com/)){
+	console.log("On a GitHub page: set up observer");
+	observer.observe(bodyList, config);
+    };
+};
 
 runWithSettings();
