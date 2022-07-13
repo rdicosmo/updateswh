@@ -10,7 +10,6 @@ var devLog = function (str, obj) {
 }
 
 // global variables:
-var iconInsertedFor = "";
 var settings = {};
 var swhsaverequested = "";
 
@@ -230,14 +229,13 @@ function getandshowstatus(url, forgespecs) {
  ************************************************************************************/
 
 function insertSaveIcon(color, url) {
-    devLog("Inside insertSaveIcon, url is: " + url);
-    
     // make sure we are not inserting icon again and again
-    if (iconInsertedFor == url) {
-	devLog("Skipping insertion of icon for: " + url);
-        return false;
+    if ($(".swh-save-button").length) {
+       devLog("Icon already present, skipping insertion on page for: " + url);
+       return
+    } else {
+       devLog("Inserting icon for: " + url);
     }
-    devLog("Inserting icon for: " + url);
 
     var saveButton = $(
         '<div class="swh-save-button">' +
@@ -312,9 +310,6 @@ function insertSaveIcon(color, url) {
     $(".swh-save-button").fadeIn();
 
     $(".swh-save-button").addClass(color)
-
-    iconInsertedFor = url
-    devLog("iconInsertedFor value is: " + iconInsertedFor + " for url: " + url);
 
 }
 
