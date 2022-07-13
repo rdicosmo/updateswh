@@ -37,8 +37,8 @@ function testupdateforge(url, forgespecs) {
 
     // fixed parameters
     var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
-    var forgelastupdate = "";
-    var swhlastupdate = "";
+    var forgelastupdate = null;
+    var swhlastupdate = null;
     var results = {
         projecturl: projecturl,
         isComplete: false, // flag to record completion of the following code that is asynchronous
@@ -219,7 +219,8 @@ function getandshowstatus(url, forgespecs) {
     var resultsChecker = setInterval(function () {
         if (results.isComplete) {
             // display button using an icon named with the color and the project url
-            insertSaveIcon(results)
+	    devLog("Calling InsertSaveIcon with: ",results);
+            insertSaveIcon(results);
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
@@ -233,10 +234,15 @@ function getandshowstatus(url, forgespecs) {
  ************************************************************************************/
 
 function insertSaveIcon(results) {
+    devLog("Inside insertSaveIcon");
     color=results.color;
     url=results.projecturl;
-    forgelastupdate=results.forgelastupdate;
-    swhlastupdate=results.swhlastupdate;
+    if (results.forgelastupdate){
+	forgelastupdate=(results.forgelastupdate).split('T')[0];
+    }
+    if (results.swhlastupdate){
+	swhlastupdate=(results.swhlastupdate).split('T')[0];
+    }
     // make sure we are not inserting icon again and again
     if ($(".swh-save-button").length) {
        devLog("Icon already present, skipping insertion on page for: " + url);
@@ -261,8 +267,8 @@ function insertSaveIcon(results) {
     
     if (color == "green") { // everything is up to date!
         $(".swh-save-button")
-	    .attr("title", 'Up to date! Last visit on\n' + 
-		  swhlastupdate +
+	    .attr("title", 'Good news: archive is up to date!\n' +
+		  'Last visit on: ' + swhlastupdate +
 		 "\nClick to open the archive page.")
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
@@ -282,15 +288,20 @@ function insertSaveIcon(results) {
     } else { // we propose to save the project
 	if (color=="yellow") {
 	    $(".swh-save-button").
-		attr("title",'Archival copy is not current.\nClick to trigger an update')}
+		attr("title",'Archival copy is not current.\n'+
+		     'Last changed  on ' + forgelastupdate + '.\n' +
+		     'Last archival on ' + swhlastupdate + '.\n' +
+		     'Click to trigger an update')}
 	else if (color=="grey") {
 	    $(".swh-save-button").
 		attr("title",'Not yet archived.\nClick to trigger archival')}
 	else if (color=="brown") {
 	    $(".swh-save-button").
-		attr("title",'Last archival was not successful.\n' +
-		     'Click to try again,\nbut beware: there may ' +
-		     'be technical issues\nthat prevent archival at the moment.')}
+		attr("title",'Last archival tried on ' + swhlastupdate +
+		     ' failed.\n' +
+		     'Click to try again, but beware:\n' +
+		     'there may be technical issues\n' +
+		     'that prevent archival at the moment.')}
 	else {$(".swh-save-button").attr("title",'')};
         $(".swh-save-button").click(function () {
             if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
@@ -313,7 +324,9 @@ function insertSaveIcon(results) {
 			    .addClass("lightgreen")
 			    .removeAttr("title")
 			    .attr("title", 'SWH update requested already!\n' +
-				  'Click to go to the request status page.')
+				  'Click to go to the request status page.\n' +
+				  'The archival takes a few minutes, and the\n'+
+				  'button may not be up to date in the meantime.')
 			    .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
 			    .parent()
 			    .attr("href", swhsavelisturl);
