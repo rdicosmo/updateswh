@@ -12,7 +12,7 @@ var devLog = function (str, obj) {
 // global variables:
 var iconInsertedFor = "";
 var settings = {};
-var swhsaverequested = false;
+var swhsaverequested = "";
 
 /***********************************************************************************
  *
@@ -270,7 +270,7 @@ function insertSaveIcon(color, url) {
             .attr("href", swhhelp);
     } else { // we propose to save the project
         $(".swh-save-button").click(function () {
-            if (!swhsaverequested) { // ensure we only request saving once
+            if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
                 $.ajax({
                         url: swhsaveurl,
                         dataType: "json",
@@ -282,7 +282,7 @@ function insertSaveIcon(color, url) {
                         }
                     })
                     .done(function (resp) {
-                        swhsaverequested = true;
+                        swhsaverequested = swhsaveurl;
                         $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
 			$(".swh-save-button").wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
 			    .parent()
