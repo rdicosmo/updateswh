@@ -42,7 +42,9 @@ function testupdateforge(url, forgespecs) {
     var results = {
         projecturl: projecturl,
         isComplete: false, // flag to record completion of the following code that is asynchronous
-        color: "grey"
+        color: "grey",
+	swhlastupdate: null,
+	forgelastupdate: null,
     }
     $.ajax({ // get repository information from the forge
         url: forgeapiurl,
@@ -57,6 +59,7 @@ function testupdateforge(url, forgespecs) {
     })
         .done(function (resp) {
             forgelastupdate = lastupdate(resp);
+	    results.forgelastupdate=forgelastupdate;
             devLog("call to " + forgename + " API returned: ", forgelastupdate);
             $.ajax({
                     url: swhapiurl,
@@ -72,6 +75,7 @@ function testupdateforge(url, forgespecs) {
                     swhlastupdate = resp.date;
 		    swhlastupdatestatus = resp.status;
                     devLog("call to SWH API returned: ", swhlastupdate);
+		    results.swhlastupdate=swhlastupdate;
                     if (swhlastupdate >= forgelastupdate) {
                         results.color = "green"
                     } else {
@@ -215,7 +219,7 @@ function getandshowstatus(url, forgespecs) {
     var resultsChecker = setInterval(function () {
         if (results.isComplete) {
             // display button using an icon named with the color and the project url
-            insertSaveIcon(results.color, results.projecturl)
+            insertSaveIcon(results)
             clearInterval(resultsChecker) // stop polling
         }
     }, 250)
@@ -228,7 +232,11 @@ function getandshowstatus(url, forgespecs) {
  *
  ************************************************************************************/
 
-function insertSaveIcon(color, url) {
+function insertSaveIcon(results) {
+    color=results.color;
+    url=results.projecturl;
+    forgelastupdate=results.forgelastupdate;
+    swhlastupdate=results.swhlastupdate;
     // make sure we are not inserting icon again and again
     if ($(".swh-save-button").length) {
        devLog("Icon already present, skipping insertion on page for: " + url);
