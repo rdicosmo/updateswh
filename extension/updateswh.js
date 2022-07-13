@@ -5,7 +5,7 @@ if (chrome) {
 
 var devLog = function (str, obj) {
     if (settings && settings.swhdebug) {
-        console.log("updateswh: " + str, obj)
+        console.log("updateswh: " + str, obj);
     }
 }
 
@@ -45,7 +45,7 @@ function testupdateforge(url, forgespecs) {
         color: "grey",
 	swhlastupdate: null,
 	forgelastupdate: null,
-    }
+    };
     $.ajax({ // get repository information from the forge
         url: forgeapiurl,
         dataType: "json",
@@ -77,12 +77,12 @@ function testupdateforge(url, forgespecs) {
                     devLog("call to SWH API returned: ", swhlastupdate);
 		    results.swhlastupdate=swhlastupdate;
                     if (swhlastupdate >= forgelastupdate) {
-                        results.color = "green"
+                        results.color = "green";
                     } else {
-                        results.color = "yellow"
+                        results.color = "yellow";
                     };
 		    if (swhlastupdatestatus !="full") { // last update did not succeed
-			results.color = "brown"         // let's warn the user
+			results.color = "brown";        // let's warn the user
 		    }
                 })
                 .fail(function (xhr, texstatus, error) {
@@ -95,7 +95,7 @@ function testupdateforge(url, forgespecs) {
                 .always(function (resp) {
                     devLog("call to SWH API finished", resp);
                     results.isComplete = true;
-                })
+                });
         })
         .fail(function (resp) {
             devLog("call to " + forgename + " API failed", resp);
@@ -125,7 +125,7 @@ function setupGitHub(url, pattern, type) {
         forgeapiurl: forgeapiurl,
         forgename: type,
         lastupdate: (function (resp) {
-            return resp.pushed_at
+            return resp.pushed_at;
         })
     };
 }
@@ -140,7 +140,7 @@ function setupBitbucket(url, pattern, type) {
         forgeapiurl: forgeapiurl,
         forgename: type,
         lastupdate: (function (resp) {
-            return resp.updated_on
+            return resp.updated_on;
         })
     };
 }
@@ -156,7 +156,7 @@ function setupGitLab(url, pattern, type) {
         forgeapiurl: forgeapiurl,
         forgename: type,
         lastupdate: (function (resp) {
-            return resp.last_activity_at
+            return resp.last_activity_at;
         })
     };
 }
@@ -174,7 +174,7 @@ function setupGitLabInstance(url, pattern, type) {
         forgeapiurl: forgeapiurl,
         forgename: type,
         lastupdate: (function (resp) {
-            return resp.last_activity_at
+            return resp.last_activity_at;
         })
     };
 }
@@ -223,7 +223,7 @@ function getandshowstatus(url, forgespecs) {
             insertSaveIcon(results);
             clearInterval(resultsChecker) // stop polling
         }
-    }, 250)
+    }, 250);
     return results;
 }
 
@@ -260,10 +260,10 @@ function insertSaveIcon(results) {
 
     $('body').append(saveButton);
 
-    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo" // documentation about missinig repositories (typically private ones)
-    var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url)
-    var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/"
-    var swhsavelisturl = "https://archive.softwareheritage.org/save/list/"
+    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo"; // documentation about missinig repositories (typically private ones)
+    var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url);
+    var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/";
+    var swhsavelisturl = "https://archive.softwareheritage.org/save/list/";
     
     if (color == "green") { // everything is up to date!
         $(".swh-save-button")
@@ -291,18 +291,18 @@ function insertSaveIcon(results) {
 		attr("title",'Archival copy is not current.\n'+
 		     'Last changed  on ' + forgelastupdate + '.\n' +
 		     'Last archival on ' + swhlastupdate + '.\n' +
-		     'Click to trigger an update')}
+		     'Click to trigger an update');}
 	else if (color=="grey") {
 	    $(".swh-save-button").
-		attr("title",'Not yet archived.\nClick to trigger archival')}
+		attr("title",'Not yet archived.\nClick to trigger archival');}
 	else if (color=="brown") {
 	    $(".swh-save-button").
 		attr("title",'Last archival tried on ' + swhlastupdate +
 		     ' failed.\n' +
 		     'Click to try again, but beware:\n' +
 		     'there may be technical issues\n' +
-		     'that prevent archival at the moment.')}
-	else {$(".swh-save-button").attr("title",'')};
+		     'that prevent archival at the moment.');}
+	else {$(".swh-save-button").attr("title",'');};
         $(".swh-save-button").click(function () {
             if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
                 $.ajax({
@@ -336,7 +336,7 @@ function insertSaveIcon(results) {
                             browser.runtime.sendMessage({
                                 "type": "createtab",
                                 "url": swhsavelisturl
-                            })
+                            });
                         };
                         //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
                     })
@@ -359,14 +359,14 @@ function insertSaveIcon(results) {
                     })
                     .always(function (resp) {
                         devLog("Completed " + swhsaveurl);
-                    })
+                    });
             }
         });
     }
 
     $(".swh-save-button").fadeIn();
 
-    $(".swh-save-button").addClass(color)
+    $(".swh-save-button").addClass(color);
 
 }
 
@@ -411,13 +411,13 @@ function runWithSettings() {
     document.head.appendChild(fa);
 
     browser.storage.local.get(null, function (items) {
-        settings = items
+        settings = items;
         devLog("got settings in runWithSettings", settings);
 	devLog("updateswh is running");
     });
 
     // wait 200ms for the settings to get loaded
-    setTimeout(run, 200)
+    setTimeout(run, 200);
 }
 
 // Add a mutation observer to trigger actions on changes
@@ -428,7 +428,7 @@ var oldHref = document.location.href;
 
 window.onload = function() {
     console.log("Inside the observer function");
-    var bodyList = document.querySelector("body")
+    var bodyList = document.querySelector("body");
 
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
