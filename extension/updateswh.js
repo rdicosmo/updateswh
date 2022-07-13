@@ -375,6 +375,7 @@ function runWithSettings() {
 var oldHref = document.location.href;
 
 window.onload = function() {
+    console.log("Inside the observer function");
     var bodyList = document.querySelector("body")
 
     var observer = new MutationObserver(function(mutations) {
