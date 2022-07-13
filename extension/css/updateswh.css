@@ -5,9 +5,6 @@
     font-size: 12px;
     font-family:  "Helvetica", "Arial", "sans-serif";
     text-align: center;
-    margin: 0;
-    width: 35px;
-    height: 40px;
     float: right;
     border-radius: 40px 0 0 40px;
     box-shadow: 0 1px 5px -1px #333;
@@ -44,9 +41,6 @@
 .swh-save-button.lightgreen {
     background: #90ee90;
 }
-.swh-save-button.grey {
-    background: #D3D3D3;
-}
 .swh-save-button.yellow {
     background: #ffff00;
 }
@@ -58,13 +52,8 @@
 }
 .swh-save-button.red {
     background: #ff0000;
-
 }
-
-
 /*The button color for origin we couldn't find in SWH*/
-
 .swh-save-button.grey {
-    border-right: none;
-    background: #bbb;
+    background: #D3D3D3;
 }
