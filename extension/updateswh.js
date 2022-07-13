@@ -261,20 +261,37 @@ function insertSaveIcon(results) {
     
     if (color == "green") { // everything is up to date!
         $(".swh-save-button")
+	    .attr("title", 'Up to date! Last visit on\n' + 
+		  swhlastupdate +
+		 "\nClick to open the archive page.")
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhurl);
     } else if (color == "red") { // we did not find this project (probably a private project)
         $(".swh-save-button")
+	    .attr("title", 'Could not get information:\nis this repository private?')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
     } else if (color == "orange") { // we hit the rate limit
         $(".swh-save-button")
+	    .attr("title", 'You used up the API call quota! Click to read more on the help page.')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
     } else { // we propose to save the project
+	if (color=="yellow") {
+	    $(".swh-save-button").
+		attr("title",'Archival copy is not current.\nClick to trigger an update')}
+	else if (color=="grey") {
+	    $(".swh-save-button").
+		attr("title",'Not yet archived.\nClick to trigger archival')}
+	else if (color=="brown") {
+	    $(".swh-save-button").
+		attr("title",'Last archival was not successful.\n' +
+		     'Click to try again,\nbut beware: there may ' +
+		     'be technical issues\nthat prevent archival at the moment.')}
+	else {$(".swh-save-button").attr("title",'')};
         $(".swh-save-button").click(function () {
             if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
                 $.ajax({
@@ -289,8 +306,15 @@ function insertSaveIcon(results) {
                     })
                     .done(function (resp) {
                         swhsaverequested = swhsaveurl;
-                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("lightgreen");
-			$(".swh-save-button").wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+                        $(".swh-save-button")
+			    .removeClass("yellow")
+			    .removeClass("brown")
+			    .removeClass("grey")
+			    .addClass("lightgreen")
+			    .removeAttr("title")
+			    .attr("title", 'SWH update requested already!\n' +
+				  'Click to go to the request status page.')
+			    .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
 			    .parent()
 			    .attr("href", swhsavelisturl);
                         devLog("Successful " + swhsaveurl);
@@ -304,7 +328,19 @@ function insertSaveIcon(results) {
                         //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
                     })
                     .fail(function (resp, texstatus, error) {
-                        $(".swh-save-button").removeClass("yellow").removeClass("grey").addClass("red").attr("href", swhhelp);
+                        $(".swh-save-button")
+			    .removeClass("yellow")
+			    .removeClass("brown")
+			    .removeClass("grey")
+			    .addClass("red")
+			    .removeAttr("title")
+			    .attr("title",
+				  'Archival failed:' +
+				  texstatus +
+				  '.\nError: ')
+			    .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
+			    .parent()
+			    .attr("href", swhhelp);
                         devLog("Call to SWH save API failed, status: " + texstatus + ", error: " + error + ".", resp);
                         devLog("Failed on url " + swhsaveurl);
                     })
