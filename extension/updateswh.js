@@ -397,7 +397,11 @@ function handle(url) {
 }
 
 function run() {
-    handle(window.location.href);
+    try {
+	handle(window.location.href);
+    } catch (error) {
+	console.log("updateswh.js error: "+error);
+    }
 }
 
 function runWithSettings() {
