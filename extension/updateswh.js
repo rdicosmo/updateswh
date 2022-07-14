@@ -204,8 +204,8 @@ var forgehandlers = [{
     },
     // heuristic: we handle gitlab.*.* as a GitLab instance
     {
-        pattern: /^https?:\/\/gitlab.[^.]*.[^.]*\/[^\/]*\/[^\/]+/,
-        reject: "^https?:\/\/gitlab.[^.]*.[^.]*\/users\/sign_in",
+        pattern: /^https?:\/\/gitlab.[^.\/]*.[^.\/]*\/[^\/]*\/[^\/]+/,
+        reject: "^https?:\/\/gitlab.[^.\/]*.[^.\/]*\/users\/sign_in",
         type: 'GitLab instance',
         handler: setupGitLabInstance
     },
