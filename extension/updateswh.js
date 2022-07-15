@@ -435,14 +435,12 @@ window.onload = function() {
     var bodyList = document.querySelector("body");
 
     var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
+	// check if location.href has changed
             if (oldHref != document.location.href) {
                 oldHref = document.location.href;
-                /* Changed ! your code here */
 		console.log("mutation triggers call");
-		run()
-            }
-        });
+		run();
+	    }
     });
     
     var config = {
@@ -455,4 +453,5 @@ window.onload = function() {
     };
 };
 
+		       
 runWithSettings();
