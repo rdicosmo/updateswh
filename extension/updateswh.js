@@ -260,7 +260,7 @@ function insertSaveIcon(results) {
 
     $('body').append(saveButton);
 
-    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo"; // documentation about missinig repositories (typically private ones)
+    var swhhelp = "https://www.softwareheritage.org/browser-extension/#missingrepo"; // documentation about missing repositories (typically private ones)
     var swhurl = "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=" + encodeURI(url);
     var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/";
     var swhsavelisturl = "https://archive.softwareheritage.org/save/list/";
