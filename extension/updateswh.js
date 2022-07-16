@@ -463,8 +463,13 @@ setupObserver = function() {
 
     var observer = new MutationObserver(function(mutations) {
 	// check if location.href has changed
-            if (oldHref != document.location.href) {
-                oldHref = document.location.href;
+	// compare urls only on the relevant GitHub project part
+	oldprefix = (oldHref)
+	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
+	newprefix = (document.location.href)
+	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
+        if ((newprefix) && (oldprefix) && (oldprefix[0] != newprefix[0])){
+                oldHref = newprefix;
 		console.log("mutation triggers call");
 		run();
 	    }
