@@ -425,13 +425,13 @@ function runWithSettings() {
 }
 
 // Add a mutation observer to trigger actions on changes
-// From Leonardo Ciaccio: https://stackoverflow.com/questions/3522090/event-when-window-location-href-changes
 // Restricted to GitHub (only case where it seems needed for now)
 
 var oldHref = document.location.href;
 
-window.onload = function() {
-    console.log("Inside the observer function");
+// window.onload = function() {
+setupObserver = function() {
+    console.info("Inside the observer function");
     var bodyList = document.querySelector("body");
 
     var observer = new MutationObserver(function(mutations) {
@@ -453,5 +453,12 @@ window.onload = function() {
     };
 };
 
+if (document.readyState === 'loading') {  // Loading hasn't finished yet
+    console.log("Wait for DOMContentLodaded");
+    document.addEventListener('DOMContentLoaded', setupObserver);
+} else {  // `DOMContentLoaded` has already fired
+    console.log("DOMContentLodaded has already fired: set up observer directly");
+    setupObserver();
+}
 		       
 runWithSettings();
