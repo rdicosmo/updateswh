@@ -199,6 +199,7 @@ var forgehandlers = [{
     },
     {
         pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/,
+        reject: /^https?:\/\/gitlab.com\/explore\//,
         type: 'GitLab',
         handler: setupGitLab
     },
