@@ -469,7 +469,7 @@ setupObserver = function() {
 	newprefix = (document.location.href)
 	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
         if ((newprefix) && (oldprefix) && (oldprefix[0] != newprefix[0])){
-                oldHref = newprefix;
+                oldHref = newprefix[0];
 		console.log("mutation triggers call");
 		run();
 	    }
