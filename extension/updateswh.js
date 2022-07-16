@@ -459,7 +459,7 @@ var oldHref = document.location.href;
 // window.onload = function() {
 setupObserver = function() {
     console.info("Inside the observer function");
-    var bodyList = document.querySelector("body");
+    var bodyList = document.querySelector("html");
 
     var observer = new MutationObserver(function(mutations) {
 	// check if location.href has changed
