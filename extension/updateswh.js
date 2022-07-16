@@ -233,6 +233,28 @@ function getandshowstatus(url, forgespecs) {
  *
  ************************************************************************************/
 
+function mouse3click(event,url){
+    switch (event.which) {
+    case 1:
+	console.log('Left Mouse button pressed.');
+	break;
+    case 2:
+	console.log('Middle Mouse button pressed.');
+	break;
+    case 3:
+	console.log('Right Mouse button pressed.');
+        devLog("Showing request status in a new tab");
+        browser.runtime.sendMessage({
+            "type": "createtab",
+            "url": url
+        });
+	break;
+    default:
+	console.log('You have a strange Mouse!');
+    }
+};
+
+
 function insertSaveIcon(results) {
     devLog("Inside insertSaveIcon");
     color=results.color;
@@ -288,20 +310,24 @@ function insertSaveIcon(results) {
     } else { // we propose to save the project
 	if (color=="yellow") {
 	    $(".swh-save-button").
+		mousedown(function(e) {mouse3click(e,swhurl)}).
 		attr("title",'Archival copy is not current.\n'+
 		     'Last changed  on ' + forgelastupdate + '.\n' +
 		     'Last archival on ' + swhlastupdate + '.\n' +
-		     'Click to trigger an update');}
+		     'Click to trigger an update\n' +
+		     'Right click to view last archival');}
 	else if (color=="grey") {
 	    $(".swh-save-button").
 		attr("title",'Not yet archived.\nClick to trigger archival');}
 	else if (color=="brown") {
 	    $(".swh-save-button").
+		mousedown(function(e) {mouse3click(e,swhurl)}).
 		attr("title",'Last archival tried on ' + swhlastupdate +
 		     ' failed.\n' +
 		     'Click to try again, but beware:\n' +
 		     'there may be technical issues\n' +
-		     'that prevent archival at the moment.');}
+		     'that prevent archival at the moment.\n' +
+		     'Right click to view last archival');}
 	else {$(".swh-save-button").attr("title",'');};
         $(".swh-save-button").click(function () {
             if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
