@@ -28,40 +28,51 @@ var swhsaverequested = "";
  *
  ************************************************************************************/
 
-function testupdateforge(url, forgespecs) {
-    var projecturl = forgespecs.projecturl;
-    var userproject = forgespecs.userproject;
-    var forgeapiurl = forgespecs.forgeapiurl;
-    var forgename = forgespecs.forgename;
-    var lastupdate = forgespecs.lastupdate;
+var lastprojecturl=null;
+var lastresults=null;
 
-    // fixed parameters
-    var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
-    var forgelastupdate = null;
-    var swhlastupdate = null;
-    var results = {
-        projecturl: projecturl,
-        isComplete: false, // flag to record completion of the following code that is asynchronous
-        color: "grey",
-	swhlastupdate: null,
-	forgelastupdate: null,
-    };
-    $.ajax({ // get repository information from the forge
-        url: forgeapiurl,
-        dataType: "json",
-        type: 'GET',
-        beforeSend: function (xhr) { // add GitHub token if possible
-            if (settings.ghtoken && forgename == "GitHub") {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + settings.ghtoken);
-		devLog("Added GH token");
+function testupdateforge(url, forgespecs) {
+    //cache calls
+    if (forgespecs.projecturl==lastprojecturl) {
+	devLog("Cache result of call to testupdateforge: "+lastprojecturl);
+	return lastresults;
+    } else {
+	var projecturl = forgespecs.projecturl;
+	var userproject = forgespecs.userproject;
+	var forgeapiurl = forgespecs.forgeapiurl;
+	var forgename = forgespecs.forgename;
+	var lastupdate = forgespecs.lastupdate;
+
+        // update cached values
+	lastprojecturl=projecturl;
+	
+	// fixed parameters
+	var swhapiurl = "https://archive.softwareheritage.org/api/1/origin/" + projecturl + "/visit/latest/";
+	var forgelastupdate = null;
+	var swhlastupdate = null;
+	var results = {
+            projecturl: projecturl,
+            isComplete: false, // flag to record completion of the following code that is asynchronous
+            color: "grey",
+	    swhlastupdate: null,
+	    forgelastupdate: null,
+	};
+	$.ajax({ // get repository information from the forge
+            url: forgeapiurl,
+            dataType: "json",
+            type: 'GET',
+            beforeSend: function (xhr) { // add GitHub token if possible
+		if (settings.ghtoken && forgename == "GitHub") {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + settings.ghtoken);
+		    devLog("Added GH token");
+		}
             }
-        }
-    })
-        .done(function (resp) {
-            forgelastupdate = lastupdate(resp);
-	    results.forgelastupdate=forgelastupdate;
-            devLog("call to " + forgename + " API returned: ", forgelastupdate);
-            $.ajax({
+	})
+            .done(function (resp) {
+		forgelastupdate = lastupdate(resp);
+		results.forgelastupdate=forgelastupdate;
+		devLog("call to " + forgename + " API returned: ", forgelastupdate);
+		$.ajax({
                     url: swhapiurl,
                     dataType: "json",
                     type: 'GET',
@@ -71,42 +82,43 @@ function testupdateforge(url, forgespecs) {
                         }
                     }
                 })
-                .done(function (resp) {
-                    swhlastupdate = resp.date;
-		    swhlastupdatestatus = resp.status;
-                    devLog("call to SWH API returned: ", swhlastupdate);
-		    results.swhlastupdate=swhlastupdate;
-                    if (swhlastupdate >= forgelastupdate) {
-                        results.color = "green";
-                    } else {
-                        results.color = "yellow";
-                    };
-		    if (swhlastupdatestatus !="full") { // last update did not succeed
-			results.color = "brown";        // let's warn the user
-		    }
-                })
-                .fail(function (xhr, texstatus, error) {
-                    devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", xhr);
+                    .done(function (resp) {
+			swhlastupdate = resp.date;
+			devLog("call to SWH API returned: ", swhlastupdate);
+			results.swhlastupdate=swhlastupdate;
+			if (swhlastupdate >= forgelastupdate) {
+                            results.color = "green";
+			} else {
+                            results.color = "yellow";
+			};
+			if (resp.status !="full") { // last update did not succeed
+			    results.color = "brown";        // let's warn the user
+			}
+                    })
+                    .fail(function (xhr, texstatus, error) {
+			devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", xhr);
 		    if (xhr.status == 403) { // it seems we ran out of steam on the SWH API
 			results.color = "orange"; // let's warn the user
 		    } else {
 			results.color = "grey";}
-                })
-                .always(function (resp) {
-                    devLog("call to SWH API finished", resp);
-                    results.isComplete = true;
-                });
-        })
-        .fail(function (resp) {
-            devLog("call to " + forgename + " API failed", resp);
-	    if (resp.status == 403) { // it seems we ran out of steam on the forge API
-		results.color = "orange"; // let's warn the user
-                devLog("Setting color to orange");
-	    } else {
-		results.color = "red";}
-            results.isComplete = true;
-        });
-    return results;
+                    })
+                    .always(function (resp) {
+			devLog("call to SWH API finished", resp);
+			results.isComplete = true;
+                    });
+            })
+            .fail(function (resp) {
+		devLog("call to " + forgename + " API failed", resp);
+		if (resp.status == 403) { // it seems we ran out of steam on the forge API
+		    results.color = "orange"; // let's warn the user
+                    devLog("Setting color to orange");
+		} else {
+		    results.color = "red";}
+		results.isComplete = true;
+            });
+	lastresults=results;
+	return results;
+    }
 }
 
 /***********************************************************************************
