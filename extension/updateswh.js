@@ -216,16 +216,22 @@ var forgehandlers = [{
 // its work is completed, then show the result with the save icon and quit.
 
 function getandshowstatus(url, forgespecs) {
-    var results = testupdateforge(url, forgespecs);
-    var resultsChecker = setInterval(function () {
-        if (results.isComplete) {
-            // display button using an icon named with the color and the project url
-	    devLog("Calling InsertSaveIcon with: ",results);
-            insertSaveIcon(results);
-            clearInterval(resultsChecker) // stop polling
-        }
-    }, 250);
-    return results;
+    if ($(".swh-save-button").length &&
+	!$(".swh-save-button").hasClass('orange')) {
+	devLog("getandshowstatus skipping: icon present, and not API limit overflow");
+	return
+    } else { // no icon, or we had an API limit overflow: let's run
+	var results = testupdateforge(url, forgespecs);
+	var resultsChecker = setInterval(function () {
+            if (results.isComplete) {
+		// display button using an icon named with the color and the project url
+		devLog("Calling InsertSaveIcon with: ",results);
+		insertSaveIcon(results);
+		clearInterval(resultsChecker) // stop polling
+            }
+	}, 250);
+	return results;
+    }
 }
 
 /***********************************************************************************
@@ -454,34 +460,38 @@ function runWithSettings() {
 // Add a mutation observer to trigger actions on changes
 // Restricted to GitHub (only case where it seems needed for now)
 
-var oldHref = document.location.href;
-
-// window.onload = function() {
 setupObserver = function() {
-    console.info("Inside the observer function");
-    var bodyList = document.querySelector("html");
+    console.log("Inside the observer function");
+    var bodyList = document.querySelector("body");
+    var thisurl = document.location.href;
 
-    var observer = new MutationObserver(function(mutations) {
-	// check if location.href has changed
-	// compare urls only on the relevant GitHub project part
-	oldprefix = (oldHref)
+    var bodyobserver = new MutationObserver(function(mutations) {
+	console.log("check if body mutation needs to trigger call");
+	prefix = (document.location.href)
 	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
-	newprefix = (document.location.href)
-	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
-        if ((newprefix) && (oldprefix) && (oldprefix[0] != newprefix[0])){
-                oldHref = newprefix[0];
+        if (prefix) { // we are on a GitHub page
+	    if ($(".swh-save-button").length &&
+		!$(".swh-save-button").hasClass('orange')) { 
+		devLog("Icon present, and not API limit overflow: skipping mutation call");
+	    } else { // no icon, let's run
 		console.log("mutation triggers call");
 		run();
 	    }
+	} else {
+	    devLog("Skipping non GitHub page");
+	}
     });
     
     var config = {
         childList: true,
-        subtree: true
+        subtree: true,
+	characterData: true,
+	attributes: true
     };
-    if (oldHref.match(/^https?:\/\/github.com/)){
+    if (thisurl.match(/^https?:\/\/github.com/)){
 	console.log("On a GitHub page: set up observer");
-	observer.observe(bodyList, config);
+	console.log("Set up observer on: " + thisurl + " (current page: "+document.location.href+")");
+	bodyobserver.observe(bodyList, config);
     };
 };
 
