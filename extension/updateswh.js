@@ -187,7 +187,7 @@ function setupGitLabInstance(url, pattern, type) {
 
 var forgehandlers = [{
         pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/,
-        reject: "^https?:\/\/github.com\/(features|marketplace|orgs|([^\/]*\/[^\/]*\/search\?))",
+        reject: "^https?:\/\/github.com\/(features|marketplace|orgs|topics|collections|([^\/]*\/[^\/]*\/search\?))",
         type: 'GitHub',
         handler: setupGitHub
     },
