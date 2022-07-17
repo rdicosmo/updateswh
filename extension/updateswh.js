@@ -472,12 +472,14 @@ function runWithSettings() {
 // Add a mutation observer to trigger actions on changes
 // Restricted to GitHub (only case where it seems needed for now)
 
+var thisrunprefix = null;
+
 setupObserver = function() {
     console.log("Inside the observer function");
-    var bodyList = document.querySelector("body");
+    var htmlList = document.querySelector("html");
     var thisurl = document.location.href;
 
-    var bodyobserver = new MutationObserver(function(mutations) {
+    var htmlobserver = new MutationObserver(function(mutations) {
 	console.log("check if body mutation needs to trigger call");
 	prefix = (document.location.href)
 	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
@@ -486,24 +488,26 @@ setupObserver = function() {
 		!$(".swh-save-button").hasClass('orange')) { 
 		devLog("Icon present, and not API limit overflow: skipping mutation call");
 	    } else { // no icon, let's run
-		console.log("mutation triggers call");
-		run();
+		if (prefix!=thisrunprefix){
+		    thisrunprefix=prefix;
+		    console.log("mutation triggers call");
+		    run();
+		} else
+		{devlog("Already running on: "+prefix);}
 	    }
 	} else {
-	    devLog("Skipping non GitHub page");
+	    devLog("Skipping non GitHub project page: "+thisurl);
 	}
     });
     
     var config = {
         childList: true,
         subtree: true,
-	characterData: true,
-	attributes: true
     };
     if (thisurl.match(/^https?:\/\/github.com/)){
 	console.log("On a GitHub page: set up observer");
 	console.log("Set up observer on: " + thisurl + " (current page: "+document.location.href+")");
-	bodyobserver.observe(bodyList, config);
+	htmlobserver.observe(htmlList, config);
     };
 };
 
