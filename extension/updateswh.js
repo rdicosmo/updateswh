@@ -255,13 +255,10 @@ function getandshowstatus(url, forgespecs) {
 function mouse3click(event,url){
     switch (event.which) {
     case 1:
-	console.log('Left Mouse button pressed.');
 	break;
     case 2:
-	console.log('Middle Mouse button pressed.');
 	break;
     case 3:
-	console.log('Right Mouse button pressed.');
         devLog("Showing request status in a new tab");
         browser.runtime.sendMessage({
             "type": "createtab",
@@ -269,7 +266,7 @@ function mouse3click(event,url){
         });
 	break;
     default:
-	console.log('You have a strange Mouse!');
+	break;
     }
 };
 
