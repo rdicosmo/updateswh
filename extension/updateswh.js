@@ -199,26 +199,33 @@ function setupGitLabInstance(url, pattern, type) {
 
 var forgehandlers = [{
         pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/,
-        reject: "^https?:\/\/github.com\/(features|marketplace|orgs|topics|collections|([^\/]*\/[^\/]*\/search\?))",
+        reject:  "^https?:\/\/github.com\/(features|marketplace|orgs|topics|collections|([^\/]*\/[^\/]*\/search\?))",
         type: 'GitHub',
         handler: setupGitHub
     },
     {
         pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/,
-        reject: "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)",
+        reject:  "^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)",
         type: 'Bitbucket',
         handler: setupBitbucket
     },
     {
         pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/,
-        reject: /^https?:\/\/gitlab.com\/explore\//,
+        reject:  /^https?:\/\/gitlab.com\/explore\//,
         type: 'GitLab',
         handler: setupGitLab
     },
+    // hardcoded list of gitlab instances		     
+    {
+        pattern: /^https?:\/\/(0xacab.org|gite.lirmm.fr|framagit.org|gricad-gitlab.univ-grenoble-alpes.fr)\/[^\/]*\/[^\/]+/,
+        reject:  "^https?:\/\/(0xacab.org|gite.lirmm.fr|framagit.org|gricad-gitlab.univ-grenoble-alpes.fr)\/users\/sign_in",
+        type: 'GitLab instance',
+        handler: setupGitLabInstance
+    },
     // heuristic: we handle gitlab.*.* as a GitLab instance
     {
-        pattern: /^https?:\/\/gitlab.[^.\/]*.[^.\/]*\/[^\/]*\/[^\/]+/,
-        reject: "^https?:\/\/gitlab.[^.\/]*.[^.\/]*\/users\/sign_in",
+        pattern: /^https?:\/\/gitlab.[^.]*.[^.\/]*\/[^\/]*\/[^\/]+/,
+        reject:  "^https?:\/\/gitlab.[^.]*.[^.\/]*\/users\/sign_in",
         type: 'GitLab instance',
         handler: setupGitLabInstance
     },
