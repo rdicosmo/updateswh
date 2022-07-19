@@ -472,12 +472,12 @@ function runWithSettings() {
 var thisrunprefix = null;
 
 setupObserver = function() {
-    console.log("Inside the observer function");
+    // console.log("Inside the observer function");
     var htmlList = document.querySelector("html");
     var thisurl = document.location.href;
 
     var htmlobserver = new MutationObserver(function(mutations) {
-	console.log("check if body mutation needs to trigger call");
+	// console.log("check if body mutation needs to trigger call");
 	prefix = (document.location.href)
 	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
         if (prefix) { // we are on a GitHub page
@@ -487,10 +487,10 @@ setupObserver = function() {
 	    } else { // no icon, let's run
 		if (prefix!=thisrunprefix){
 		    thisrunprefix=prefix;
-		    console.log("mutation triggers call");
+		    devLog("mutation triggers call");
 		    run();
 		} else
-		{devlog("Already running on: "+prefix);}
+		{devLog("Already running on: "+prefix);}
 	    }
 	} else {
 	    devLog("Skipping non GitHub project page: "+thisurl);
@@ -502,17 +502,17 @@ setupObserver = function() {
         subtree: true,
     };
     if (thisurl.match(/^https?:\/\/github.com/)){
-	console.log("On a GitHub page: set up observer");
-	console.log("Set up observer on: " + thisurl + " (current page: "+document.location.href+")");
+	// console.log("On a GitHub page: set up observer");
+	// console.log("Set up observer on: " + thisurl + " (current page: "+document.location.href+")");
 	htmlobserver.observe(htmlList, config);
     };
 };
 
 if (document.readyState === 'loading') {  // Loading hasn't finished yet
-    console.log("Wait for DOMContentLodaded");
+    // console.log("Wait for DOMContentLodaded");
     document.addEventListener('DOMContentLoaded', setupObserver);
 } else {  // `DOMContentLoaded` has already fired
-    console.log("DOMContentLodaded has already fired: set up observer directly");
+    // console.log("DOMContentLodaded has already fired: set up observer directly");
     setupObserver();
 }
 		       
