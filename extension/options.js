@@ -29,6 +29,12 @@ function save_options() {
         ghtoken: ghtoken
     })
 
+    var gitlabs = document.getElementById('gitlabs').value;
+
+    browser.storage.local.set({
+        gitlabs: gitlabs
+    })
+
     var status = document.getElementById('status');
     status.textContent = 'Preferences saved.';
 
@@ -60,6 +66,11 @@ function restore_options() {
     }, function (items) {
         document.getElementById('ghtoken').value = items.ghtoken;
     });
+    browser.storage.local.get({
+        gitlabs: null
+    }, function (items) {
+        document.getElementById('gitlabs').value = items.gitlabs;
+    });
 }
 
 
@@ -71,4 +82,6 @@ document.getElementById('showrequest').addEventListener('click',
 document.getElementById('swhtoken').addEventListener('input',
     save_options);
 document.getElementById('ghtoken').addEventListener('input',
+    save_options);
+document.getElementById('gitlabs').addEventListener('input',
     save_options);
