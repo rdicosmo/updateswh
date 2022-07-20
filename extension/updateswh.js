@@ -231,6 +231,25 @@ var forgehandlers = [{
     },
 ]
 
+function updategitlabhandlers(domains){
+    var domainexpr =
+	domains
+	.replace(RegExp(" ","g"), "") // sanitize text
+	.replace(RegExp("[\n\r]","g"), "|");
+    var addrecord  =
+	{
+            pattern: RegExp("^https?:\/\/("+domainexpr+")\/[^\/]*\/[^\/]+"),
+            reject:  "^https?:\/\/("+domainexpr+")\/users\/sign_in",
+            type: 'GitLab instance',
+            handler: setupGitLabInstance
+	};
+    // FIXME: we should check whether it is already present
+    forgehandlers.push(addrecord);
+    devLog("updated GitLab instances", forgehandlers);
+    return
+};
+
+
 // Get the status of the repository by polling the results of the handler until
 // its work is completed, then show the result with the save icon and quit.
 
@@ -465,6 +484,10 @@ function runWithSettings() {
 
     browser.storage.local.get(null, function (items) {
         settings = items;
+	if (settings.gitlabs) {
+	    devLog("update gitlab instances");
+	    updategitlabhandlers(settings.gitlabs);
+	};
         devLog("got settings in runWithSettings", settings);
 	devLog("updateswh is running");
     });
