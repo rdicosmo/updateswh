@@ -498,34 +498,57 @@ function runWithSettings() {
 // Add a mutation observer to trigger actions on changes
 // Restricted to GitHub (only case where it seems needed for now)
 
+
+var sleep = (ms) => {
+    devLog(`sleeping for: ${ms} milliseconds`)
+    return new Promise(resolve => {
+        setTimeout(function() {
+            resolve()
+            console.log(`continuing after: ${ms} milliseconds`)
+        }, ms)
+    })
+}
+
 var thisrunprefix = null;
 
-setupObserver = function() {
+setupObserver = async () => {
     // console.log("Inside the observer function");
     var htmlList = document.querySelector("html");
     var thisurl = document.location.href;
 
-    var htmlobserver = new MutationObserver(function(mutations) {
-	// console.log("check if body mutation needs to trigger call");
-	prefix = (document.location.href)
-	    .match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
-        if (prefix) { // we are on a GitHub page
-	    if ($(".swh-save-button").length &&
-		!$(".swh-save-button").hasClass('orange')) { 
-		devLog("Icon present, and not API limit overflow: skipping mutation call");
-	    } else { // no icon, let's run
-		if (prefix!=thisrunprefix){
-		    thisrunprefix=prefix;
-		    devLog("mutation triggers call");
+    var htmlobserver = new MutationObserver(async (mutations) => {
+	var newurl = document.location.href;
+	var prefix = null;
+	var prefixmatch = newurl.match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
+	if (prefixmatch) {prefix=prefixmatch[0]};
+        if (prefix) { // we are on a potentially new GitHub page
+	    console.log("wait for lock");
+	    await navigator.locks.request('mutation_observer', async lock => {
+	    console.log("got lock");
+	    if (prefix==thisrunprefix &&
+		$(".swh-save-button").length &&
+		!$(".swh-save-button").hasClass('orange')
+	       ) { // same prefix as one handled by a previous mutation observer, and the icon is there
+		devLog("Skipping redundant mutation on : "+newurl);
+	    } else {
+		if ($(".swh-save-button").length &&
+		    !$(".swh-save-button").hasClass('orange')) {
+		    devLog("Icon present, and not API limit overflow: skipping mutation call");
+		} else { // no icon, let's run
+		    if (prefix!=thisrunprefix){thisrunprefix=prefix;};
+		    console.log("mutation triggers call");
 		    run();
-		} else
-		{devLog("Already running on: "+prefix);}
-	    }
-	} else {
-	    devLog("Skipping non GitHub project page: "+thisurl);
+		    devLog("Wait for run to complete");
+		    await sleep(350);
+		    if($(".swh-save-button").length) { devLog("Icon has been inserted before releasing lock");};
+		    devLog("releasing lock");
+		}
+	    }});
+	}
+	else {
+	    devLog("Skipping non GitHub project page: "+newurl);
 	}
     });
-    
     var config = {
         childList: true,
         subtree: true,
