@@ -13,6 +13,19 @@ var devLog = function (str, obj) {
 var settings = {};
 var swhsaverequested = "";
 
+// wrapping setTimeout into a promise, based on
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises
+var sleep = (ms) => {
+    devLog(`sleeping for: ${ms} milliseconds`);
+    return new Promise(resolve => {
+        setTimeout(function() {
+            resolve();
+            console.log(`continuing after: ${ms} milliseconds`);
+        }, ms);
+    });
+}
+
+
 /***********************************************************************************
  *
  * Generic code to check a project from a forge in the Software Heritage archive
@@ -492,22 +505,11 @@ function runWithSettings() {
     });
 
     // wait 200ms for the settings to get loaded
-    setTimeout(run, 200);
+    sleep(200).then(run);
 }
 
 // Add a mutation observer to trigger actions on changes
 // Restricted to GitHub (only case where it seems needed for now)
-
-
-var sleep = (ms) => {
-    devLog(`sleeping for: ${ms} milliseconds`)
-    return new Promise(resolve => {
-        setTimeout(function() {
-            resolve()
-            console.log(`continuing after: ${ms} milliseconds`)
-        }, ms)
-    })
-}
 
 var thisrunprefix = null;
 
