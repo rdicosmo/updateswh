@@ -311,13 +311,13 @@ function mouse3click(event,url){
 
 function insertSaveIcon(results) {
     devLog("Inside insertSaveIcon");
-    color=results.color;
-    url=results.projecturl;
+    var color=results.color;
+    var url=results.projecturl;
     if (results.forgelastupdate){
-	forgelastupdate=(results.forgelastupdate).split('T')[0];
+	var forgelastupdate=(results.forgelastupdate).split('T')[0];
     }
     if (results.swhlastupdate){
-	swhlastupdate=(results.swhlastupdate).split('T')[0];
+	var swhlastupdate=(results.swhlastupdate).split('T')[0];
     }
     // make sure we are not inserting icon again and again
     if ($(".swh-save-button").length) {
@@ -513,7 +513,7 @@ function runWithSettings() {
 
 var thisrunprefix = null;
 
-setupObserver = async () => {
+var setupObserver = async () => {
     // console.log("Inside the observer function");
     var htmlList = document.querySelector("html");
     var thisurl = document.location.href;
@@ -542,7 +542,8 @@ setupObserver = async () => {
 		    run();
 		    devLog("Wait for run to complete");
 		    await sleep(350);
-		    if($(".swh-save-button").length) { devLog("Icon has been inserted before releasing lock");};
+		    if($(".swh-save-button").length) {
+			devLog("Icon has been inserted before releasing lock");};
 		    devLog("releasing lock");
 		}
 	    }});
