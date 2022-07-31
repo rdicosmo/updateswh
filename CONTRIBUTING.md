@@ -19,7 +19,7 @@ The goals of the extension are the following.
 ### At developer level:	 
  - provide an easy way to add support for new forge technologies
 
-A natural source of inspiration for this work was the unpaywall extension, and
+A natural source of inspiration for this work was the [unpaywall extension](https://github.com/ourresearch/unpaywall-extension), and
 the extension code base started with a significantly stripped down version of
 the unpaywall source code. We have kept the same coding style, but the current
 extension works in a way that is pretty different from the unpaywall one.
@@ -41,7 +41,7 @@ We can get the repository last modification as follows (see [the GitHub document
  - retrieve the value of the `pushed_at` field in the JSON document returned by the call
 ### GitLab
 On a GitLab instance, we can proceed almost in the same way (see [the GitLab documentation](https://docs.gitlab.com/ee/api/projects.html#get-single-project)), with the following differences
- - the call to the API must [path encode the entity/repository slug](https://docs.gitlab.com/ee/api/index.html#namespaced-path-encoding), and we 
+ - the call to the API must [path encode the entity/repository slug](https://docs.gitlab.com/ee/api/index.html#namespaced-path-encoding)
  - the last modification is in the `last_activity_at` field
 
 ### Special prefixes
