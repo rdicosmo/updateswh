@@ -292,6 +292,24 @@ function updategitlabhandlers(domains){
     return
 };
 
+function updategiteahandlers(domains){
+    var domainexpr =
+	domains
+	.replace(/ /g, "") // sanitize input
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // escape for regexp
+	.replace(/[\n\r]/g, "|"); // turn multiple domains into alternation
+    var addrecord  =
+	{
+            pattern: RegExp("^https?:\/\/("+domainexpr+")\/[^\/]+\/[^\/]+"),
+            reject:  RegExp("^https?:\/\/("+domainexpr+")\/(users|explore)\/"),
+            type: 'Gitea instance',
+            handler: setupGiteaInstance
+	};
+    forgehandlers.push(addrecord);
+    devLog("updated Gitea instances", forgehandlers);
+    return
+};
+
 
 // Get the status of the repository by polling the results of the handler until
 // its work is completed, then show the result with the save icon and quit.
@@ -530,6 +548,10 @@ function runWithSettings() {
 	if (settings.gitlabs) {
 	    devLog("update gitlab instances");
 	    updategitlabhandlers(settings.gitlabs);
+	};
+	if (settings.giteas) {
+	    devLog("update gitea instances");
+	    updategiteahandlers(settings.giteas);
 	};
         devLog("got settings in runWithSettings", settings);
 	devLog("updateswh is running");
