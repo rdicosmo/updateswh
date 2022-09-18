@@ -142,7 +142,7 @@ function testupdateforge(url, forgespecs) {
 
 function setupGitHub(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/^https?:\/\/github\.com\//, ""); // this is the user+project fragment
+    var userproject = new URL(projecturl).pathname.substring(1); // this is the user+project fragment
     var forgeapiurl = "https://api.github.com/repos/" + userproject;
     return {
         projecturl: projecturl,
@@ -157,7 +157,7 @@ function setupGitHub(url, pattern, type) {
 
 function setupBitbucket(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/^https?:\/\/bitbucket\.org\//, ""); // this is the user+project fragment
+    var userproject = new URL(projecturl).pathname.substring(1); // this is the user+project fragment
     var forgeapiurl = "https://api.bitbucket.org/2.0/repositories/" + userproject;
     return {
         projecturl: projecturl,
@@ -172,7 +172,7 @@ function setupBitbucket(url, pattern, type) {
 
 function setupGitLab(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = encodeURIComponent(projecturl.replace(/^https?:\/\/gitlab\.com\//, "")); // path-encoded user+project fragment
+    var userproject = encodeURIComponent(new URL(projecturl).pathname.substring(1)); // path-encoded user+project fragment
     var forgeapiurl = "https://gitlab.com/api/v4/projects/" + userproject;
     devLog("Setting up GitLab: " + type);
     return {
@@ -188,10 +188,9 @@ function setupGitLab(url, pattern, type) {
 
 function setupGitLabInstance(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var forgeprotocol = projecturl.match(/^https?:\/\//);
-    var forgebaseurl = forgeprotocol + projecturl.replace(forgeprotocol, "").replace(/\/.*/, "/");
-    var userproject = encodeURIComponent(projecturl.replace(forgebaseurl, "")); // path-encoded user+project fragment
-    var forgeapiurl = forgebaseurl + "api/v4/projects/" + userproject;
+    var forgebaseurl = new URL(projecturl).origin;
+    var userproject = encodeURIComponent(new URL(projecturl).pathname.substring(1)); // path-encoded user+project fragment
+    var forgeapiurl = forgebaseurl + "/api/v4/projects/" + userproject;
     devLog("Setting up GitLab instance at: " + forgebaseurl);
     return {
         projecturl: projecturl,
