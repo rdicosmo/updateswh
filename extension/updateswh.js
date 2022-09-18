@@ -203,6 +203,23 @@ function setupGitLabInstance(url, pattern, type) {
     };
 }
 
+function setupGiteaInstance(url, pattern, type) {
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var forgebaseurl = new URL(projecturl).origin;
+    var userproject = new URL(projecturl).pathname.substring(1); // user+project fragment
+    var forgeapiurl = forgebaseurl + "/api/v1/repos/" + userproject;
+    devLog("Setting up Gitea instance at: " + forgebaseurl);
+    return {
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.updated_at;
+        })
+    };
+}
+
 
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
@@ -240,6 +257,20 @@ var forgehandlers = [{
         reject:  /^https?:\/\/gitlab\.[^.\/]+\.[^.\/]+\/users\/sign_in/,
         type: 'GitLab instance',
         handler: setupGitLabInstance
+    },
+    // hardcoded list of gitea instances
+    {
+        pattern: /^https?:\/\/(git\.rampin\.org|codeberg\.org)\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/(git\.rampin\.org|codeberg\.org)\/(user|explore)\//,
+        type: 'Gitea instance',
+        handler: setupGiteaInstance
+    },
+    // heuristic: we handle gitea.*.* as a Gitea instance
+    {
+        pattern: /^https?:\/\/(gitea\.[^.\/]+\.[^.\/]+)\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/(gitea\.[^.\/]+\.[^.\/]+)\/(user|explore)\//,
+        type: 'Gitea instance',
+        handler: setupGiteaInstance
     },
 ]
 
