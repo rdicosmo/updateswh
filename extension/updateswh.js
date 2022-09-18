@@ -277,11 +277,12 @@ var forgehandlers = [{
 function updategitlabhandlers(domains){
     var domainexpr =
 	domains
-	.replace(RegExp(" ","g"), "") // sanitize text
-	.replace(RegExp("[\n\r]","g"), "|");
+	.replace(/ /g, "") // sanitize input
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // escape for regexp
+	.replace(/[\n\r]/g, "|"); // turn multiple domains into alternation
     var addrecord  =
 	{
-            pattern: RegExp("^https?:\/\/("+domainexpr+")\/[^\/]*\/[^\/]+"),
+            pattern: RegExp("^https?:\/\/("+domainexpr+")\/[^\/]+\/[^\/]+"),
             reject:  RegExp("^https?:\/\/("+domainexpr+")\/users\/sign_in"),
             type: 'GitLab instance',
             handler: setupGitLabInstance
