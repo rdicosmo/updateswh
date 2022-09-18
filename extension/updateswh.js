@@ -142,7 +142,7 @@ function testupdateforge(url, forgespecs) {
 
 function setupGitHub(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/github.com\//, ""); // this is the user+project fragment
+    var userproject = projecturl.replace(/^https?:\/\/github\.com\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.github.com/repos/" + userproject;
     return {
         projecturl: projecturl,
@@ -157,7 +157,7 @@ function setupGitHub(url, pattern, type) {
 
 function setupBitbucket(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = projecturl.replace(/https?:\/\/bitbucket.org\//, ""); // this is the user+project fragment
+    var userproject = projecturl.replace(/^https?:\/\/bitbucket\.org\//, ""); // this is the user+project fragment
     var forgeapiurl = "https://api.bitbucket.org/2.0/repositories/" + userproject;
     return {
         projecturl: projecturl,
@@ -172,7 +172,7 @@ function setupBitbucket(url, pattern, type) {
 
 function setupGitLab(url, pattern, type) {
     var projecturl = pattern.exec(url)[0]; // this is the url of the project
-    var userproject = encodeURIComponent(projecturl.replace(/http.*:\/\/gitlab.com\//, "")); // path-encoded user+project fragment
+    var userproject = encodeURIComponent(projecturl.replace(/^https?:\/\/gitlab\.com\//, "")); // path-encoded user+project fragment
     var forgeapiurl = "https://gitlab.com/api/v4/projects/" + userproject;
     devLog("Setting up GitLab: " + type);
     return {
@@ -211,34 +211,34 @@ function setupGitLabInstance(url, pattern, type) {
 // order is important: first match will be used!
 
 var forgehandlers = [{
-        pattern: /^https?:\/\/github.com\/[^\/]*\/[^\/]+/,
-        reject:  /^https?:\/\/github.com\/(features|marketplace|orgs|topics|collections|settings|([^\/]*\/[^\/]*\/search\?))/,
+        pattern: /^https?:\/\/github\.com\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/github\.com\/(features|marketplace|orgs|topics|collections|settings|([^\/]+\/[^\/]+\/search\?))/,
         type: 'GitHub',
         handler: setupGitHub
     },
     {
-        pattern: /^https?:\/\/bitbucket.org\/[^\/]*\/[^\/]+/,
-        reject:  /^https?:\/\/bitbucket.org\/(dashboard\/|product\/|account\/signin)/,
+        pattern: /^https?:\/\/bitbucket\.org\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/bitbucket\.org\/(dashboard\/|product\/|account\/signin)/,
         type: 'Bitbucket',
         handler: setupBitbucket
     },
     {
-        pattern: /^https?:\/\/gitlab.com\/[^\/]*\/[^\/]+/,
-        reject:  /^https?:\/\/gitlab.com\/explore\//,
+        pattern: /^https?:\/\/gitlab\.com\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/gitlab\.com\/explore\//,
         type: 'GitLab',
         handler: setupGitLab
     },
     // hardcoded list of gitlab instances		     
     {
-        pattern: /^https?:\/\/(0xacab.org|gite.lirmm.fr|framagit.org|gricad-gitlab.univ-grenoble-alpes.fr)\/[^\/]*\/[^\/]+/,
-        reject:  /^https?:\/\/(0xacab.org|gite.lirmm.fr|framagit.org|gricad-gitlab.univ-grenoble-alpes.fr)\/users\/sign_in/,
+        pattern: /^https?:\/\/(0xacab\.org|gite\.lirmm\.fr|framagit\.org|gricad-gitlab\.univ-grenoble-alpes\.fr)\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/(0xacab\.org|gite\.lirmm\.fr|framagit\.org|gricad-gitlab\.univ-grenoble-alpes\.fr)\/users\/sign_in/,
         type: 'GitLab instance',
         handler: setupGitLabInstance
     },
     // heuristic: we handle gitlab.*.* as a GitLab instance
     {
-        pattern: /^https?:\/\/gitlab.[^.]*.[^.\/]*\/[^\/]*\/[^\/]+/,
-        reject:  /^https?:\/\/gitlab.[^.]*.[^.\/]*\/users\/sign_in/,
+        pattern: /^https?:\/\/gitlab\.[^.\/]+\.[^.\/]+\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/gitlab\.[^.\/]+\.[^.\/]+\/users\/sign_in/,
         type: 'GitLab instance',
         handler: setupGitLabInstance
     },
