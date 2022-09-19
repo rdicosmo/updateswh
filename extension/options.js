@@ -35,6 +35,12 @@ function save_options() {
         gitlabs: gitlabs
     })
 
+    var giteas = document.getElementById('giteas').value;
+
+    browser.storage.local.set({
+        giteas: giteas
+    })
+
     var status = document.getElementById('status');
     status.textContent = 'Preferences saved.';
 
@@ -71,6 +77,11 @@ function restore_options() {
     }, function (items) {
         document.getElementById('gitlabs').value = items.gitlabs;
     });
+    browser.storage.local.get({
+        giteas: null
+    }, function (items) {
+        document.getElementById('giteas').value = items.giteas;
+    });
 }
 
 
@@ -84,4 +95,6 @@ document.getElementById('swhtoken').addEventListener('input',
 document.getElementById('ghtoken').addEventListener('input',
     save_options);
 document.getElementById('gitlabs').addEventListener('input',
+    save_options);
+document.getElementById('giteas').addEventListener('input',
     save_options);
