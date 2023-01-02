@@ -228,7 +228,7 @@ function setupGiteaInstance(url, pattern, type) {
 
 var forgehandlers = [{
         pattern: /^https?:\/\/github\.com\/[^\/]+\/[^\/]+/,
-        reject:  /^https?:\/\/github\.com\/(features|marketplace|orgs|topics|collections|settings|([^\/]+\/[^\/]+\/search\?))/,
+        reject:  /^https?:\/\/github\.com\/(apps|features|marketplace|orgs|topics|collections|settings|([^\/]+\/[^\/]+\/search\?))/,
         type: 'GitHub',
         handler: setupGitHub
     },
