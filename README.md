@@ -1,4 +1,4 @@
-# Update Software Heritage browser extension for Chrome and Firefox
+# Update Software Heritage browser extension for Chrome, Firefox and Edge
 
 This browser extension checks if a repository visited by the user is archived
 and uptodate in Software Heritage.
@@ -24,7 +24,7 @@ that is not publicly accessible, and that naturally cannot be archived.
 ### Getting the extension for your browser
 
 For accessing the latest published version of the extension on the FireFox
-Add-ons and on the Chrome Web Store, and more detailed usage instructions, see the webpage at
+Add-ons, the Chrome Web Store or the Microsoft Edge Add-ons, and more detailed usage instructions, see the webpage at
 https://www.softwareheritage.org/browser-extensions/
 
 ### Credits
@@ -35,9 +35,9 @@ starting point for designing and developing this extension.
 
 ### Developer information
 
-The code base is meant to be identical between FireFox and Google Chrome.
+The code base is meant to be identical between FireFox, Google Chrome and Microsoft Edge.
 Due to the ongoing transition to manifest version 3, there is currently
 one difference: for FireFox a manifest.json version 2 is provided, but
-for Google Chrome one needs to create a package using the version 3
+for Google Chrome and Microsoft Edge one needs to create a package using the version 3
 format provided in manifest-v3.json.
 The toplevel Makefile takes care of the appropriate reshuffling at package creation time.
