@@ -400,7 +400,7 @@ function insertSaveIcon(results) {
             .attr("href", swhurl);
     } else if (color == "red") { // we did not find this project (probably a private project)
         $(".swh-save-button")
-	    .attr("title", 'Could not get information:\nmay be a private repository or a non repository path that we do not handle yet.')
+	    .attr("title", 'Could not get information:\nmay be a private repository or a\nnon repository path\nthat we do not handle yet.')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
