@@ -2,11 +2,11 @@
     padding: 0;
     margin: 0;
     color: #fff;
-    font-size: 12px;
+    font-size: 6px;
     font-family:  "Helvetica", "Arial", "sans-serif";
     text-align: center;
     float: right;
-    border-radius: 40px 0 0 40px;
+    border-radius: 20px 0 0 20px;
     box-shadow: 0 1px 5px -1px #333;
     cursor: pointer;
     opacity: 1;
@@ -15,8 +15,8 @@
     justify-content: center;
     border-right: none;
     background: transparent;
-    height: 50px;
-    width: 50px;
+    height: 30px;
+    width: 30px;
     position: fixed;
     right: -5px;
     top: 33%;
