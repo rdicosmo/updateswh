@@ -56,7 +56,9 @@
     "open_in_tab": false
   },
   "permissions": [
-    "storage"
+      "storage",
+      "tabs",
+      "activeTab"
   ],
   "host_permissions": [
     "<all_urls>"

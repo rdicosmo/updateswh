@@ -52,6 +52,8 @@
   },
   "permissions": [
     "<all_urls>",
-    "storage"
+      "storage",
+      "tabs",
+      "activeTab"
   ]
 }
