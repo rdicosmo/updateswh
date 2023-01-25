@@ -406,7 +406,7 @@ function insertSaveIcon(results) {
             .attr("href", swhhelp);
     } else if (color == "orange") { // we hit the rate limit
         $(".swh-save-button")
-	    .attr("title", 'You used up the API call quota! Click to read more on the help page.')
+	    .attr("title", 'Cannot trigger archival!\nIs archive.softwareheritage.org in maintenance?\nIf not, you used up the API call quota.\nClick to read more on the help page.')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
