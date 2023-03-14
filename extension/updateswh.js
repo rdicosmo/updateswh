@@ -260,8 +260,8 @@ var forgehandlers = [{
     },
     // hardcoded list of gitea instances
     {
-        pattern: /^https?:\/\/(git\.rampin\.org|codeberg\.org)\/[^\/]+\/[^\/]+/,
-        reject:  /^https?:\/\/(git\.rampin\.org|codeberg\.org)\/(user|explore)\//,
+        pattern: /^https?:\/\/(git\.rampin\.org|codeberg\.org|git\.disroot\.org|git\.minetest\.land|repo\.radio|git\.fsfe\.org)\/[^\/]+\/[^\/]+/,
+        reject:  /^https?:\/\/(git\.rampin\.org|codeberg\.org|git\.disroot\.org|git\.minetest\.land|repo\.radio|git\.fsfe\.org)\/(user|explore)\//,
         type: 'Gitea instance',
         handler: setupGiteaInstance
     },
