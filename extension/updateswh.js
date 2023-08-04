@@ -1,3 +1,12 @@
+
+const COLOR_CODES = {
+  UP_TO_DATE: "green",
+  OUT_OF_DATE: "yellow",
+  FAILED_UPDATE: "brown",
+  API_LIMIT: "orange",
+  NOT_ARCHIVED: "grey",
+  FORGE_API_ERROR: "red",
+};
 if (chrome) {
     browser = chrome
 }
@@ -66,7 +75,7 @@ function testupdateforge(url, forgespecs) {
 	var results = {
             projecturl: projecturl,
             isComplete: false, // flag to record completion of the following code that is asynchronous
-            color: "grey",
+            color: COLOR_CODES.NOT_ARCHIVED,
 	    swhlastupdate: null,
 	    forgelastupdate: null,
 	};
@@ -100,20 +109,20 @@ function testupdateforge(url, forgespecs) {
 			devLog("call to SWH API returned: ", swhlastupdate);
 			results.swhlastupdate=swhlastupdate;
 			if (swhlastupdate >= forgelastupdate) {
-                            results.color = "green";
+                            results.color = COLOR_CODES.UP_TO_DATE;
 			} else {
-                            results.color = "yellow";
+                            results.color = COLOR_CODES.OUT_OF_DATE;
 			};
 			if (resp.status !="full") { // last update did not succeed
-			    results.color = "brown";        // let's warn the user
+			    results.color = COLOR_CODES.FAILED_UPDATE;        // let's warn the user
 			}
                     })
                     .fail(function (xhr, texstatus, error) {
 			devLog("call to SWH API failed, status: " + texstatus + ", error: " + error + ".", xhr);
 		    if (xhr.status == 403) { // it seems we ran out of steam on the SWH API
-			results.color = "orange"; // let's warn the user
+			results.color = COLOR_CODES.API_LIMIT; // let's warn the user
 		    } else {
-			results.color = "grey";}
+			results.color = COLOR_CODES.NOT_ARCHIVED;}
                     })
                     .always(function (resp) {
 			devLog("call to SWH API finished", resp);
@@ -123,10 +132,10 @@ function testupdateforge(url, forgespecs) {
             .fail(function (resp) {
 		devLog("call to " + forgename + " API failed", resp);
 		if (resp.status == 403) { // it seems we ran out of steam on the forge API
-		    results.color = "orange"; // let's warn the user
+		    results.color = COLOR_CODES.API_LIMIT; // let's warn the user
                     devLog("Setting color to orange");
 		} else {
-		    results.color = "red";}
+		    results.color = COLOR_CODES.FORGE_API_ERROR;}
 		results.isComplete = true;
             });
 	lastresults=results;
@@ -390,7 +399,7 @@ function insertSaveIcon(results) {
     var swhsaveurl = "https://archive.softwareheritage.org/api/1/origin/save/git/url/" + encodeURI(url) + "/";
     var swhsavelisturl = "https://archive.softwareheritage.org/save/list/";
     
-    if (color == "green") { // everything is up to date!
+    if (color == COLOR_CODES.UP_TO_DATE) { // everything is up to date!
         $(".swh-save-button")
 	    .attr("title", 'Good news: archive is up to date!\n' +
 		  'Last visit on: ' + swhlastupdate +
@@ -398,20 +407,20 @@ function insertSaveIcon(results) {
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhurl);
-    } else if (color == "red") { // we did not find this project (probably a private project)
+    } else if (color == COLOR_CODES.FORGE_API_ERROR) { // we did not find this project (probably a private project)
         $(".swh-save-button")
 	    .attr("title", 'Could not get information:\nprivate repository?\nnon repository GitLab path?\nwrong values in setting?')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
-    } else if (color == "orange") { // we hit the rate limit
+    } else if (color == COLOR_CODES.API_LIMIT) { // we hit the rate limit
         $(".swh-save-button")
 	    .attr("title", 'Cannot trigger archival!\nIs archive.softwareheritage.org in maintenance?\nIf not, you used up the API call quota.\nClick to read more on the help page.')
             .wrap($('<a target="_blank" rel="noopener noreferrer"></a>'))
             .parent()
             .attr("href", swhhelp);
     } else { // we propose to save the project
-	if (color=="yellow") {
+	if (color==COLOR_CODES.OUT_OF_DATE) {
 	    $(".swh-save-button").
 		mousedown(function(e) {mouse3click(e,swhurl)}).
 		attr("title",'Archival copy is not current.\n'+
@@ -419,10 +428,10 @@ function insertSaveIcon(results) {
 		     'Last archival on ' + swhlastupdate + '.\n' +
 		     'Click to trigger an update\n' +
 		     'Right click to view last archival');}
-	else if (color=="grey") {
+	else if (color==COLOR_CODES.NOT_ARCHIVED) {
 	    $(".swh-save-button").
 		attr("title",'Not yet archived.\nClick to trigger archival');}
-	else if (color=="brown") {
+	else if (color==COLOR_CODES.FAILED_UPDATE) {
 	    $(".swh-save-button").
 		mousedown(function(e) {mouse3click(e,swhurl)}).
 		attr("title",'Last archival tried on ' + swhlastupdate +
@@ -447,9 +456,9 @@ function insertSaveIcon(results) {
                     .done(function (resp) {
                         swhsaverequested = swhsaveurl;
                         $(".swh-save-button")
-			    .removeClass("yellow")
-			    .removeClass("brown")
-			    .removeClass("grey")
+			    .removeClass(COLOR_CODES.OUT_OF_DATE)
+			    .removeClass(COLOR_CODES.FAILED_UPDATE)
+			    .removeClass(COLOR_CODES.NOT_ARCHIVED)
 			    .addClass("lightgreen")
 			    .removeAttr("title")
 			    .attr("title", 'SWH update requested already!\n' +
@@ -471,10 +480,10 @@ function insertSaveIcon(results) {
                     })
                     .fail(function (resp, texstatus, error) {
                         $(".swh-save-button")
-			    .removeClass("yellow")
-			    .removeClass("brown")
-			    .removeClass("grey")
-			    .addClass("red")
+			    .removeClass(COLOR_CODES.OUT_OF_DATE)
+			    .removeClass(COLOR_CODES.FAILED_UPDATE)
+			    .removeClass(COLOR_CODES.NOT_ARCHIVED)
+			    .addClass(COLOR_CODES.FORGE_API_ERROR)
 			    .removeAttr("title")
 			    .attr("title",
 				  'Archival failed:' +
