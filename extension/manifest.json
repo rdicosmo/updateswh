@@ -32,8 +32,7 @@
         "<all_urls>"
       ],
       "css": [
-        "css/updateswh.css",
-        "css/font-awesome.min.css"
+        "css/updateswh.css"
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
