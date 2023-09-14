@@ -536,12 +536,12 @@ function run() {
 function runWithSettings() {
     // extension bundled webfont URL is not the same for Chrome and Firefox so we inject
     // the font-face dynamically to avoid error message in the console
-    var fa = document.createElement("style");
+/*    var fa = document.createElement("style");
     fa.rel = "stylesheet";
     fa.textContent = '@font-face { font-family: FontAwesome; src: url("' +
         browser.runtime.getURL("fonts/fontawesome-webfont.woff2") +
         '"); }';
-    document.head.appendChild(fa);
+    document.head.appendChild(fa);*/
 
     browser.storage.local.get(null, function (items) {
         settings = items;
