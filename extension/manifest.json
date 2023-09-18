@@ -32,8 +32,7 @@
         "<all_urls>"
       ],
       "css": [
-        "css/updateswh.css",
-        "css/font-awesome.min.css"
+        "css/updateswh.css"
       ],
       "js": [
         "js/jquery-3.6.0.min.js",
@@ -43,8 +42,7 @@
   ],
   "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' https://archive.softwareheritage.org/",
   "web_accessible_resources": [
-    "*.html",
-    "fonts/fontawesome-webfont.woff2"
+    "*.html"
   ],
   "options_ui": {
     "page": "options.html",
