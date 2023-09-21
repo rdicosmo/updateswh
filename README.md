@@ -23,7 +23,7 @@ that is not publicly accessible, and that naturally cannot be archived.
 
 ### Getting the extension for your browser
 
-For accessing the latest published version of the extension on the FireFox
+For accessing the latest published version of the extension on the Firefox
 Add-ons, the Chrome Web Store or the Microsoft Edge Add-ons, and more detailed usage instructions, see the webpage at
 https://www.softwareheritage.org/browser-extensions/
 
@@ -35,9 +35,9 @@ starting point for designing and developing this extension.
 
 ### Developer information
 
-The code base is meant to be identical between FireFox, Google Chrome and Microsoft Edge.
+The code base is meant to be identical between Firefox, Google Chrome and Microsoft Edge.
 Due to the ongoing transition to manifest version 3, there is currently
-one difference: for FireFox a manifest.json version 2 is provided, but
+one difference: for Firefox a manifest.json version 2 is provided, but
 for Google Chrome and Microsoft Edge one needs to create a package using the version 3
 format provided in manifest-v3.json.
 The toplevel Makefile takes care of the appropriate reshuffling at package creation time.
