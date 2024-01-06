@@ -583,12 +583,16 @@ var setupObserver = async () => {
     var htmlobserver = new MutationObserver(async (mutations) => {
 	var newurl = document.location.href;
 	var prefix = null;
+	var topghprefixmatch = newurl.match(/^https?:\/\/github.com\//); 
 	var prefixmatch = newurl.match(/^https?:\/\/github.com\/[^\/]*\/[^\/]+/);
-	if (prefixmatch) {prefix=prefixmatch[0]};
-        if (prefix) { // we are on a potentially new GitHub page
+	if (topghprefixmatch) {// we are on GitHub 
 	    console.log("wait for lock");
 	    await navigator.locks.request('mutation_observer', async lock => {
 	    console.log("got lock");
+	    if (!prefixmatch) {// we are not on a GitHub project page: remove save icon if present
+		if ($(".swh-save-button").length) {$(".swh-save-button").remove()}
+	    } else {// we are on a potentially new GitHub project page
+	    prefix=prefixmatch[0]; // get the project prefix
 	    if (prefix==thisrunprefix &&
 		$(".swh-save-button").length &&
 		!$(".swh-save-button").hasClass(COLOR_CODES.API_LIMIT)
