@@ -325,7 +325,7 @@ function updategiteahandlers(domains){
 
 function getandshowstatus(url, forgespecs) {
     if ($(".swh-save-button").length &&
-	!$(".swh-save-button").hasClass('orange')) {
+	!$(".swh-save-button").hasClass(COLOR_CODES.API_LIMIT)) {
 	devLog("getandshowstatus skipping: icon present, and not API limit overflow");
 	return
     } else { // no icon, or we had an API limit overflow: let's run
@@ -591,12 +591,12 @@ var setupObserver = async () => {
 	    console.log("got lock");
 	    if (prefix==thisrunprefix &&
 		$(".swh-save-button").length &&
-		!$(".swh-save-button").hasClass('orange')
+		!$(".swh-save-button").hasClass(COLOR_CODES.API_LIMIT)
 	       ) { // same prefix as one handled by a previous mutation observer, and the icon is there
 		devLog("Skipping redundant mutation on : "+newurl);
 	    } else {
 		if ($(".swh-save-button").length &&
-		    !$(".swh-save-button").hasClass('orange')) {
+		    !$(".swh-save-button").hasClass(COLOR_CODES.API_LIMIT)) {
 		    devLog("Icon present, and not API limit overflow: skipping mutation call");
 		} else { // no icon, let's run
 		    if (prefix!=thisrunprefix){thisrunprefix=prefix;}
