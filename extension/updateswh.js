@@ -112,7 +112,7 @@ function testupdateforge(url, forgespecs) {
                             results.color = COLOR_CODES.UP_TO_DATE;
 			} else {
                             results.color = COLOR_CODES.OUT_OF_DATE;
-			};
+			}
 			if (resp.status !="full") { // last update did not succeed
 			    results.color = COLOR_CODES.FAILED_UPDATE;        // let's warn the user
 			}
@@ -299,7 +299,7 @@ function updategitlabhandlers(domains){
     forgehandlers.push(addrecord);
     devLog("updated GitLab instances", forgehandlers);
     return
-};
+}
 
 function updategiteahandlers(domains){
     var domainexpr =
@@ -317,7 +317,7 @@ function updategiteahandlers(domains){
     forgehandlers.push(addrecord);
     devLog("updated Gitea instances", forgehandlers);
     return
-};
+}
 
 
 // Get the status of the repository by polling the results of the handler until
@@ -364,7 +364,7 @@ function mouse3click(event,url){
     default:
 	break;
     }
-};
+}
 
 
 function insertSaveIcon(results) {
@@ -440,7 +440,7 @@ function insertSaveIcon(results) {
 		     'there may be technical issues\n' +
 		     'that prevent archival at the moment.\n' +
 		     'Right click to view last archival');}
-	else {$(".swh-save-button").attr("title",'');};
+	else {$(".swh-save-button").attr("title",'');}
         $(".swh-save-button").click(function () {
             if (swhsaverequested!=swhsaveurl) { // ensure we only request saving once for each project
                 $.ajax({
@@ -475,7 +475,7 @@ function insertSaveIcon(results) {
                                 "type": "createtab",
                                 "url": swhsavelisturl
                             });
-                        };
+                        }
                         //browser.tabs.create({url: "https://archive.softwareheritage.org/save/list/"})}; // not accessible on FF
                     })
                     .fail(function (resp, texstatus, error) {
@@ -557,11 +557,11 @@ function runWithSettings() {
 	if (settings.gitlabs) {
 	    devLog("update gitlab instances");
 	    updategitlabhandlers(settings.gitlabs);
-	};
+	}
 	if (settings.giteas) {
 	    devLog("update gitea instances");
 	    updategiteahandlers(settings.giteas);
-	};
+	}
         devLog("got settings in runWithSettings", settings);
 	devLog("updateswh is running");
     });
@@ -599,16 +599,16 @@ var setupObserver = async () => {
 		    !$(".swh-save-button").hasClass('orange')) {
 		    devLog("Icon present, and not API limit overflow: skipping mutation call");
 		} else { // no icon, let's run
-		    if (prefix!=thisrunprefix){thisrunprefix=prefix;};
+		    if (prefix!=thisrunprefix){thisrunprefix=prefix;}
 		    console.log("mutation triggers call");
 		    run();
 		    devLog("Wait for run to complete");
 		    await sleep(350);
 		    if($(".swh-save-button").length) {
-			devLog("Icon has been inserted before releasing lock");};
+			devLog("Icon has been inserted before releasing lock");}
 		    devLog("releasing lock");
 		}
-	    }});
+	    }}});
 	}
 	else {
 	    devLog("Skipping non GitHub project page: "+newurl);
@@ -622,7 +622,7 @@ var setupObserver = async () => {
 	// console.log("On a GitHub page: set up observer");
 	// console.log("Set up observer on: " + thisurl + " (current page: "+document.location.href+")");
 	htmlobserver.observe(htmlList, config);
-    };
+    }
 };
 
 if (document.readyState === 'loading') {  // Loading hasn't finished yet
