@@ -62,6 +62,7 @@ function testupdateforge(url, forgespecs) {
 	var projecturl = forgespecs.projecturl;
 	var userproject = forgespecs.userproject;
 	var forgeapiurl = forgespecs.forgeapiurl;
+	var forgeapidata = fogespecs.forgeapidata;
 	var forgename = forgespecs.forgename;
 	var lastupdate = forgespecs.lastupdate;
 
@@ -82,7 +83,9 @@ function testupdateforge(url, forgespecs) {
 	$.ajax({ // get repository information from the forge
             url: forgeapiurl,
             dataType: "json",
-            type: 'GET',
+            type: forgeapidata ? 'POST' : 'GET',
+            contentType: forgeapidata ? 'application/json' : null,
+            data: forgeapidata,
             beforeSend: function (xhr) { // add GitHub token if possible
 		if (settings.ghtoken && forgename == "GitHub") {
                     xhr.setRequestHeader('Authorization', 'Bearer ' + settings.ghtoken);
@@ -229,6 +232,38 @@ function setupGiteaInstance(url, pattern, type) {
     };
 }
 
+function setupSourcehutInstance(url, pattern, type) {
+    var projecturl = pattern.exec(url)[0]; // this is the url of the project
+    var forgebaseurl = new URL(projecturl).origin;
+    var userproject = new URL(projecturl).pathname.substring(2).split('/'); // user,project fragment
+    var query = `query GetRepoUpdated($username : Username, $repository : Repository) {
+        user(username: "$username") {
+            repository(name: "$repository") {
+                updated
+            }
+        }
+    }`;
+    var variables = {
+      username: userproject[0],
+      repository: userproject[1];
+    };
+    var forgeapiurl = forgebaseurl + "/query";
+    devLog("Setting up Sourcehut instance at: " + forgebaseurl);
+    return {
+        projecturl: projecturl,
+        userproject: userproject,
+        forgeapiurl: forgeapiurl,
+        forgeapidata: {
+            query: query,
+            variables: variables,
+        },
+        forgename: type,
+        lastupdate: (function (resp) {
+            return resp.data.user.repository.updated;
+        })
+    };
+}
+
 
 // array of regex patterns to identify the project forge from the url
 // associates forge type and handling function
@@ -280,6 +315,13 @@ var forgehandlers = [{
         reject:  /^https?:\/\/(gitea\.[^.\/]+\.[^.\/]+)\/(user|explore)\//,
         type: 'Gitea instance',
         handler: setupGiteaInstance
+    },
+    // hardcoded list of sourcehut instances
+    {
+        pattern: /^https?:\/\/(git\.sr\.ht|hg\.sr\.ht)\/~[^\/]+\/[^\/]+/,
+        // no reject since ~ namespaces users
+        type: 'Sourcehut instance',
+        handler: setupSourcehutInstance
     },
 ]
 
