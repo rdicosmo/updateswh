@@ -94,8 +94,9 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
 
 ## Phases
 
-- [ ] **A. Scaffold.** Create branch, bring in the four items from `refactor`,
-      delete the scratch/planning files listed under *Hygiene*.
+- [x] **A. Scaffold.** Create branch, bring in the four items from `refactor`,
+      delete the scratch/planning files listed under *Hygiene*. _Done
+      2026-04-14 session 2._
 - [ ] **B. Background script.** Port the `FETCH_SWH_API` proxy (minus the
       `fix/cors-proxy` cruft), wire `createtab` + `onInstalled`.
 - [ ] **C. Forges + constants.** Flat table, regex pattern/reject/setup per
@@ -155,8 +156,14 @@ Kept at root: `README.md`, `CONTRIBUTING.md` (rewritten), `HOWTO-RELEASE`,
 _Append one line per meaningful change. Keep terse._
 
 - 2026-04-14 — branch `lean` created from `main@ef40348`; plan + journal
-  committed (`f155297`). No phases started yet. **Next session: begin Phase A
-  (scaffold — cherry-pick four items from `refactor`, delete scratch files).**
+  committed (`f155297`). No phases started yet.
+- 2026-04-14 (session 2) — Phase A complete (`0cbc55d`). A.1 vendored
+  build/test infra (manifest generator, vite/jest/babel configs, unit
+  tests, package.json, .gitignore); dropped Playwright from package.json.
+  A.2 was a no-op (lean was cut clean from main — no scratch files to
+  delete). A.3 baseline: `npm test` fails as expected because tests
+  import `src/utils/dateUtils.js` and `src/forges/*.js` which land in
+  Phases C–E. **Next: Phase B (background.js with SWH proxy).**
 
 ## Session handoff — 2026-04-14
 

@@ -63,3 +63,36 @@ The AI started cutting the `lean` branch.
 3. "Integration test placeholder" files are a liability unless they run. An
    honest "drop it, defer it, here's what real tests would look like" is
    worth more than scaffolding that lies green.
+
+---
+
+## 2026-04-14 — Session 2: Phase A scaffold
+
+**What happened.** Resumed on `lean` at `f155297`. Executed Phase A in one
+pass. A.1: `git checkout refactor -- <files>` pulled manifest generator,
+vite/jest/babel configs, and the two unit tests; wrote a fresh
+`package.json` dropping `@playwright/test` and the `test:integration`
+script (per the deferral decision); added a conservative `.gitignore`.
+A.2 turned out to be a no-op — every file on the Hygiene delete list
+lives on `refactor`, not on `lean`. Since `lean` was cut from `main@ef40348`,
+not from `refactor`, there was nothing to remove. A.3: `npm install` was
+already satisfied (node_modules carried over); `npm test` failed exactly
+as predicted because the tests import `src/utils/dateUtils.js` and
+`src/forges/*.js` which come in later phases.
+
+**Lessons.**
+1. Writing the Hygiene list against the wrong branch was a small planning
+   miss — the list described `refactor`'s tree, but Phase A.2 executes on
+   `lean`, which doesn't have those files. Harmless here, but worth noting:
+   when a plan says "delete X", confirm X actually exists on the branch
+   the phase runs against.
+2. Conservative `.gitignore` at scaffold time is better than aspirational.
+   I initially listed `extension/updateswh.js` and `extension/manifest.json`
+   — both currently tracked on `lean`. Listing tracked files in
+   `.gitignore` causes confusion (git keeps tracking them) without benefit.
+   Better: gitignore them only at the moment we delete the committed
+   copies and switch to build-output workflow. Kept `.gitignore` to just
+   node_modules, zips, HOWTORESUME, editor backups, package-lock.
+3. Checkpoints are cheap. Three commits for Phase A (one real, two
+   implicit) keeps the history honest about what was done vs. what was
+   a no-op, and gives the next session a clean rewind point.
