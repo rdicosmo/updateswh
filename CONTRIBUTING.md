@@ -159,9 +159,13 @@ account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    - `package.json` → `"version"`
 2. `make` — runs `npm run build` and packages
    `FireFox.zip` / `Chrome.zip` / `Edge.zip` at the repo root.
-3. Verify both generated manifests report the new version:
+3. Verify both generated manifests **and the zips themselves** report the
+   new version (older zips from a pre-bump `make` will otherwise be
+   uploaded and rejected by the store):
    ```
    grep '"version"' extension/manifest.json extension/manifest-v3.json
+   unzip -p FireFox.zip manifest.json | grep '"version"'
+   unzip -p Chrome.zip  manifest.json | grep '"version"'
    ```
 4. `npm test` — 42 tests must stay green.
 5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
