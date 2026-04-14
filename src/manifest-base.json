@@ -77,10 +77,8 @@
     "tabs",
     "activeTab"
   ],
-  "optional_permissions": [
-    "<all_urls>"
-  ],
   "host_permissions": [
+    "<all_urls>",
     "https://archive.softwareheritage.org/*"
   ]
 }
