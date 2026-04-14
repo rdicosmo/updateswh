@@ -131,9 +131,11 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       2026-04-14 session 2 (`e30c939`). Extracted cache to
       `src/utils/cache.js`; 42/42 tests pass (6 cache, 7 nav, 19
       forges, 10 dateUtils)._
-- [ ] **J. Manual smoke.** Load unpacked in Firefox + Chrome, walk through
+- [x] **J. Manual smoke.** Load unpacked in Firefox + Chrome, walk through
       GitHub SPA navigation, GitLab, Bitbucket, Codeberg, custom Gitea
-      instance. Log icon states.
+      instance. Log icon states. _Done 2026-04-14 session 2. Surfaced
+      one regression (red button on GitHub caused by optional host
+      permissions without runtime grant); fixed in `77f077d`._
 - [ ] **K. Docs.** Rewrite `CONTRIBUTING.md` to match the flat-table style (it
       still describes the old API). Update `README.md` developer section.
       Update `CLAUDE.md`.
@@ -204,7 +206,12 @@ _Append one line per meaningful change. Keep terse._
   18.74 KB (vs. ~85 KB jQuery + 20 KB old monolith).
 - 2026-04-14 (session 2 cont.) — Phase I complete (`e30c939`). Cache
   extracted to `src/utils/cache.js`; tests for cache and navigation
-  added; 42/42 pass. **Next: Phase J (manual smoke in browsers).**
+  added; 42/42 pass.
+- 2026-04-14 (session 2 cont.) — Phase J complete. Smoke test on
+  GitHub surfaced red-button regression from Phase H's optional host
+  permissions; fixed in `77f077d` by restoring `<all_urls>` as
+  required (runtime-grant UI is Future Work). Retest green across
+  GitHub SPA nav, GitLab, Codeberg. **Next: Phase K (docs rewrite).**
 
 ## Session handoff — 2026-04-14
 
