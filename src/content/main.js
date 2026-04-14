@@ -3,11 +3,9 @@ import { buildForges, findMatchingForge, setupForge } from "../forges.js";
 import { fetchForgeApi, githubAuthHeaders } from "../api/forge.js";
 import { fetchSwhLatestVisit } from "../api/swh.js";
 import { isArchiveUpToDate } from "../utils/dateUtils.js";
+import { memoizeWithTTL } from "../utils/cache.js";
 import { insertSaveIcon, removeSaveIcon, saveIconPresent, saveIconColor } from "./ui.js";
 import { onNavigation } from "./navigation.js";
-
-const cache = new Map();
-const inflight = new Map();
 
 function getBrowser() {
     if (typeof chrome !== "undefined" && chrome?.storage) return chrome;
@@ -63,27 +61,7 @@ async function computeResults(url, forges, settings) {
     return results;
 }
 
-async function getResults(url, forges, settings) {
-    const cached = cache.get(url);
-    if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.results;
-
-    const existing = inflight.get(url);
-    if (existing) return existing;
-
-    const promise = (async () => {
-        try {
-            const results = await computeResults(url, forges, settings);
-            if (results) cache.set(url, { at: Date.now(), results });
-            return results;
-        } finally {
-            inflight.delete(url);
-        }
-    })();
-    inflight.set(url, promise);
-    return promise;
-}
-
-async function handle(url, forges, settings) {
+async function handle(url, forges, settings, getResults) {
     const forge = findMatchingForge(url, forges);
     if (!forge) {
         removeSaveIcon();
@@ -91,7 +69,7 @@ async function handle(url, forges, settings) {
     }
     if (saveIconPresent() && saveIconColor() !== COLOR_CODES.API_LIMIT) return;
 
-    const results = await getResults(url, forges, settings);
+    const results = await getResults(url);
     if (!results) return;
     if (window.location.href !== url) return;
     insertSaveIcon(results, settings);
@@ -100,8 +78,9 @@ async function handle(url, forges, settings) {
 export async function start() {
     const settings = await loadSettings();
     const forges = buildForges({ gitlabs: settings.gitlabs, giteas: settings.giteas });
+    const getResults = memoizeWithTTL((url) => computeResults(url, forges, settings), { ttlMs: CACHE_TTL_MS });
 
-    const run = () => handle(window.location.href, forges, settings);
+    const run = () => handle(window.location.href, forges, settings, getResults);
     run();
     onNavigation(() => {
         removeSaveIcon();
