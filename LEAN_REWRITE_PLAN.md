@@ -107,8 +107,9 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       (`9f1e5c3`). 19/19 tests pass. Also rewrote forgeHandlers.test.js
       against the flat-table API (the refactor-era version assumed
       classes)._
-- [ ] **D. API clients.** `src/api/forge.js` (direct fetch, status→errorType)
-      and `src/api/swh.js` (background-proxy, same error shape).
+- [x] **D. API clients.** `src/api/forge.js` (direct fetch, status→errorType)
+      and `src/api/swh.js` (background-proxy, same error shape). _Done
+      2026-04-14 session 2 (`8445092`)._
 - [ ] **E. UI.** Vanilla-DOM button + tooltip + click handler, ported from
       main's `insertSaveIcon`. No jQuery.
 - [ ] **F. Navigation detector.** `src/content/navigation.js` as described.
@@ -175,7 +176,10 @@ _Append one line per meaningful change. Keep terse._
 - 2026-04-14 (session 2 cont.) — Phase C complete (`9f1e5c3`). Flat
   `src/forges.js` table + `src/constants.js`. Rewrote
   `tests/unit/forgeHandlers.test.js` against the flat-table API; 19/19
-  pass. **Next: Phase D (API clients).**
+  pass.
+- 2026-04-14 (session 2 cont.) — Phase D complete (`8445092`).
+  `src/api/forge.js` and `src/api/swh.js` with uniform
+  `{ok, data|errorType, status}` shape. **Next: Phase E (UI).**
 
 ## Session handoff — 2026-04-14
 
