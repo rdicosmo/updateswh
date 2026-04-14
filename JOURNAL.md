@@ -96,3 +96,42 @@ as predicted because the tests import `src/utils/dateUtils.js` and
 3. Checkpoints are cheap. Three commits for Phase A (one real, two
    implicit) keeps the history honest about what was done vs. what was
    a no-op, and gives the next session a clean rewind point.
+
+---
+
+## 2026-04-14 — Session 2 cont.: Phases B and C
+
+**What happened.** Phase B ported `extension/background.js` with the
+FETCH_SWH_API proxy, and while at it fixed a latent bug in main
+(`data.type = "createtab"` was an assignment, not a comparison — the
+original handler was triggering on every message that reached it, and
+only the later short-circuit saved it).
+
+Phase C was where the lean/refactor design conflict surfaced concretely:
+`tests/unit/forgeHandlers.test.js` was written against the refactor's
+class hierarchy (`new GitHub()`, `toBeInstanceOf(GitHub)`). I paused
+before writing `src/forges.js` and surfaced the conflict to Roberto with
+two explicit options. He picked rewriting the test against the flat
+table (option A). Good exchange — it would have been wasteful to keep
+the class tests green on top of a non-class implementation.
+
+Implementation: `src/forges.js` as a `DEFAULT_FORGES` array plus
+`matches`, `findMatchingForge`, `setupForge`, `gitlabInstanceHandler`,
+`giteaInstanceHandler`, and `buildForges({gitlabs, giteas})`. 19/19
+tests pass after one test-authoring bug — I used the literal username
+`user` in Gitea URLs, which collided with the `/(user|explore)/` reject
+prefix inherited from main.
+
+**Lessons.**
+1. Surface design conflicts at the phase boundary, not after writing
+   code. The test file conflict was visible the moment I re-read its
+   imports; stopping to ask beats writing a class-hierarchy-compatible
+   shim just to keep green.
+2. Regex reject rules inherited from main have subtle assumptions about
+   likely usernames. The `/user/` prefix treats path position 1 = "user"
+   as a profile page. Real usernames don't collide; test fixtures did.
+   Noted the assumption rather than "fixing" the regex — changing
+   published patterns risks introducing real-world regressions.
+3. Rewriting tests to match a design decision is not test deletion.
+   The scope and coverage stayed equivalent; only the API surface
+   changed.

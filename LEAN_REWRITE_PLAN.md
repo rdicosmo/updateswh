@@ -101,9 +101,12 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       `fix/cors-proxy` cruft), wire `createtab` + `onInstalled`. _Done
       2026-04-14 session 2 (`fefc7ea`). Also fixed latent `data.type =
       "createtab"` assignment bug inherited from main._
-- [ ] **C. Forges + constants.** Flat table, regex pattern/reject/setup per
+- [x] **C. Forges + constants.** Flat table, regex pattern/reject/setup per
       forge, `updategitlabhandlers` / `updategiteahandlers` for custom
-      instances. No class hierarchy.
+      instances. No class hierarchy. _Done 2026-04-14 session 2
+      (`9f1e5c3`). 19/19 tests pass. Also rewrote forgeHandlers.test.js
+      against the flat-table API (the refactor-era version assumed
+      classes)._
 - [ ] **D. API clients.** `src/api/forge.js` (direct fetch, status→errorType)
       and `src/api/swh.js` (background-proxy, same error shape).
 - [ ] **E. UI.** Vanilla-DOM button + tooltip + click handler, ported from
@@ -168,8 +171,11 @@ _Append one line per meaningful change. Keep terse._
   Phases C–E. **Next: Phase B (background.js with SWH proxy).**
 - 2026-04-14 (session 2 cont.) — Phase B complete (`fefc7ea`). Rewrote
   `extension/background.js` with FETCH_SWH_API proxy, fixed the
-  `data.type = "createtab"` assignment bug from main. **Next: Phase C
-  (forges + constants).**
+  `data.type = "createtab"` assignment bug from main.
+- 2026-04-14 (session 2 cont.) — Phase C complete (`9f1e5c3`). Flat
+  `src/forges.js` table + `src/constants.js`. Rewrote
+  `tests/unit/forgeHandlers.test.js` against the flat-table API; 19/19
+  pass. **Next: Phase D (API clients).**
 
 ## Session handoff — 2026-04-14
 
