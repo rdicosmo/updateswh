@@ -121,9 +121,11 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       navigation callback. _Done 2026-04-14 session 2 (`5cd6a82`). Also
       vendored `src/utils/dateUtils.js` from refactor; 29/29 unit tests
       pass._
-- [ ] **H. Manifests.** Update `src/manifest-base.json`: drop jQuery from
+- [x] **H. Manifests.** Update `src/manifest-base.json`: drop jQuery from
       `content_scripts.js` list, declare optional host permissions for forge
-      APIs, keep SWH as required.
+      APIs, keep SWH as required. _Done 2026-04-14 session 2 (`7876065`).
+      Also untracked build artifacts (`extension/updateswh.js`,
+      `extension/manifest*.json`) and deleted jquery shim._
 - [ ] **I. Tests.** Run `npm test` — both unit test files must pass as-is.
       Add tests for inflight-dedup cache and navigation detector.
 - [ ] **J. Manual smoke.** Load unpacked in Firefox + Chrome, walk through
@@ -193,7 +195,11 @@ _Append one line per meaningful change. Keep terse._
   500ms poll.
 - 2026-04-14 (session 2 cont.) — Phase G complete (`5cd6a82`).
   Orchestration in `src/content/main.js`; dateUtils vendored; 29/29
-  tests pass. **Next: Phase H (manifests).**
+  tests pass.
+- 2026-04-14 (session 2 cont.) — Phase H complete (`7876065`).
+  Manifests drop jQuery; build artifacts untracked. Bundle size:
+  18.74 KB (vs. ~85 KB jQuery + 20 KB old monolith). **Next: Phase I
+  (unit tests for inflight-dedup cache and navigation detector).**
 
 ## Session handoff — 2026-04-14
 
