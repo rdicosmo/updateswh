@@ -36,3 +36,15 @@ export async function fetchSwhLatestVisit(projecturl, { swhtoken } = {}) {
         return { ok: false, errorType: COLOR_CODES.NOT_ARCHIVED, status: 0, error: error.message };
     }
 }
+
+export async function requestSwhSave(projecturl, { swhtoken } = {}) {
+    const url = `https://archive.softwareheritage.org/api/1/origin/save/git/url/${encodeURI(projecturl)}/`;
+    const headers = swhtoken ? { Authorization: `Bearer ${swhtoken}` } : {};
+    try {
+        const response = await sendMessage({ type: "FETCH_SWH_API", url, method: "POST", headers });
+        if (response?.success) return { ok: true, data: response.data };
+        return { ok: false, status: response?.status ?? 0, error: response?.error };
+    } catch (error) {
+        return { ok: false, status: 0, error: error.message };
+    }
+}
