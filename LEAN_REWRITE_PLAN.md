@@ -154,4 +154,74 @@ Kept at root: `README.md`, `CONTRIBUTING.md` (rewritten), `HOWTO-RELEASE`,
 
 _Append one line per meaningful change. Keep terse._
 
-- 2026-04-14 — branch `lean` created from `main@ef40348`; plan committed.
+- 2026-04-14 — branch `lean` created from `main@ef40348`; plan + journal
+  committed (`f155297`). No phases started yet. **Next session: begin Phase A
+  (scaffold — cherry-pick four items from `refactor`, delete scratch files).**
+
+## Session handoff — 2026-04-14
+
+**Git state**
+- Current branch: `lean` @ `f155297` (contains only `LEAN_REWRITE_PLAN.md` +
+  `JOURNAL.md` on top of `main@ef40348`).
+- Working tree clean; untracked: `Chrome.zip`, `Edge.zip`, `FireFox.zip`,
+  `node_modules/` (build artifacts, ignore).
+- Stash `stash@{0}` = "On refactor: untracked-from-refactor" contains the
+  loose files that were untracked while exploring `refactor`
+  (`CLAUDE.md`, `CODEBASE_SUMMARY.md`, `REFACTOR_LOG.md`,
+  `TESTING_GUIDE.md`, `MANUAL_TESTING_CHECKLIST.md`, `PACKAGE_READY.md`,
+  `.eslintrc.js[~]`, `.eslintrc.yml`, `package-lock.json`,
+  `src/utils/sleep.js`, `tmp/`, `extension/0001-*.patch`,
+  `extension/TODO`, `extension/popup.new.js`, `extension-2/`,
+  `extension-3/`, `todo`, `.#known-instances`). All of this is on the
+  **delete list** of Phase A except `CLAUDE.md` and `package-lock.json`.
+  Simplest next-session action: **do not restore this stash**; instead copy
+  just the two useful files (`CLAUDE.md`, `package-lock.json`) from the
+  `refactor` branch when needed, then drop the stash.
+
+**How to resume cleanly next session**
+```bash
+cd /home/dicosmo/code/updateswh
+git checkout lean                     # should already be here
+git status                            # confirm clean
+cat LEAN_REWRITE_PLAN.md              # decisions + phase list
+cat JOURNAL.md                        # lessons from session 1
+```
+
+Then start Phase A. Concrete first commits planned:
+
+1. **Phase A.1** — copy from `refactor`: `build/manifest-generator.js`,
+   `src/manifest-base.json`, `vite.config.js`, `jest.config.js`,
+   `babel.config.js`, the `tests/unit/*.test.js` files, and the relevant
+   additions to `package.json` (`scripts.build`, `dev`, `test`, `lint`;
+   devDeps `vite`, `jest`, `@babel/preset-env`, `babel-jest`). Leave
+   `package-lock.json` alone for now. Commit: "Phase A.1: vendor build and
+   test infra from refactor".
+
+2. **Phase A.2** — delete the scratch files listed under *Hygiene* in this
+   plan. Commit: "Phase A.2: remove refactor-era scratch and planning docs".
+
+3. **Phase A.3** — run `npm install`, `npm test`, confirm unit tests pass
+   before any rewrite begins (they'll likely fail or need trivial adaptation
+   because they import from `src/utils/dateUtils.js` and `src/forges/*.js`
+   which don't exist yet on `lean`). If they fail, temporarily skip — we'll
+   re-enable them as the matching modules come in during Phases C–E.
+
+**Memory system state**
+Saved at `/home/dicosmo/.claude/projects/-home-dicosmo-code-updateswh/memory/`:
+- `user_role.md` — Roberto's profile
+- `feedback_collaboration.md` — four rules (plan-before-code, keep
+  progress+journal, avoid .md sprawl, prefer flat over layered)
+- `project_lean_rewrite.md` — full context for this rewrite initiative
+- `MEMORY.md` — index pointing to the above
+
+**Key facts worth re-reading first thing next session**
+- GitHub SPA navigation needs `popstate` + `turbo:load`/`turbo:render` +
+  a 500 ms `location.href` poll. **Not** a MutationObserver subtree.
+- Forge APIs allow CORS; only SWH needs the background proxy.
+- `updategitlabhandlers` / `updategiteahandlers` from main's `updateswh.js`
+  must be preserved in the flat forge table — they handle user-defined
+  custom instances from `settings.gitlabs` / `settings.giteas`.
+- The `isComplete` polling loop in `main`'s `updateswh.js` (line ~333) has a
+  latent cache bug: `lastresults` is written synchronously before the async
+  chain completes, so a second call on the same URL returns an
+  still-in-flight result. The inflight-dedup Map in the rewrite fixes this.
