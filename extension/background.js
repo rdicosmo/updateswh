@@ -1,26 +1,42 @@
-if (typeof chrome !== "undefined" && chrome) {
-    browser = chrome
-}
+const browser = (typeof chrome !== "undefined" && chrome) ? chrome : globalThis.browser;
 
-function showWelcomePage() {
-    browser.tabs.create({
-        url: "https://softwareheritage.org/browser-extension"
-    }, function (tab) {});
-}
+const WELCOME_URL = "https://softwareheritage.org/browser-extension";
 
-browser.runtime.onInstalled.addListener(function (object) {
-    if (object.reason === 'install') {
-        showWelcomePage()
+browser.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install") {
+        browser.tabs.create({ url: WELCOME_URL });
     }
 });
 
-function browseraction(data, sender) {
-    console.log("Got request to create tab", data, sender);
-    if (data.type = "createtab") {
-        browser.tabs.create({
-            url: data.url
-        })
-    }
-};
+function handleFetchSwhApi(data, sendResponse) {
+    const opts = {
+        method: data.method || "GET",
+        headers: data.headers || {},
+    };
+    if (data.body) opts.body = data.body;
 
-browser.runtime.onMessage.addListener(browseraction);
+    fetch(data.url, opts)
+        .then(async (response) => {
+            if (!response.ok) {
+                sendResponse({ success: false, error: `HTTP ${response.status}`, status: response.status });
+                return;
+            }
+            const body = await response.json();
+            sendResponse({ success: true, data: body });
+        })
+        .catch((error) => {
+            sendResponse({ success: false, error: error.message, status: 0 });
+        });
+}
+
+browser.runtime.onMessage.addListener((data, _sender, sendResponse) => {
+    if (data.type === "FETCH_SWH_API") {
+        handleFetchSwhApi(data, sendResponse);
+        return true;
+    }
+    if (data.type === "createtab") {
+        browser.tabs.create({ url: data.url });
+        return false;
+    }
+    return false;
+});
