@@ -97,8 +97,10 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
 - [x] **A. Scaffold.** Create branch, bring in the four items from `refactor`,
       delete the scratch/planning files listed under *Hygiene*. _Done
       2026-04-14 session 2._
-- [ ] **B. Background script.** Port the `FETCH_SWH_API` proxy (minus the
-      `fix/cors-proxy` cruft), wire `createtab` + `onInstalled`.
+- [x] **B. Background script.** Port the `FETCH_SWH_API` proxy (minus the
+      `fix/cors-proxy` cruft), wire `createtab` + `onInstalled`. _Done
+      2026-04-14 session 2 (`fefc7ea`). Also fixed latent `data.type =
+      "createtab"` assignment bug inherited from main._
 - [ ] **C. Forges + constants.** Flat table, regex pattern/reject/setup per
       forge, `updategitlabhandlers` / `updategiteahandlers` for custom
       instances. No class hierarchy.
@@ -164,6 +166,10 @@ _Append one line per meaningful change. Keep terse._
   delete). A.3 baseline: `npm test` fails as expected because tests
   import `src/utils/dateUtils.js` and `src/forges/*.js` which land in
   Phases C–E. **Next: Phase B (background.js with SWH proxy).**
+- 2026-04-14 (session 2 cont.) — Phase B complete (`fefc7ea`). Rewrote
+  `extension/background.js` with FETCH_SWH_API proxy, fixed the
+  `data.type = "createtab"` assignment bug from main. **Next: Phase C
+  (forges + constants).**
 
 ## Session handoff — 2026-04-14
 
