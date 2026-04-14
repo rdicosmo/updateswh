@@ -110,8 +110,10 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
 - [x] **D. API clients.** `src/api/forge.js` (direct fetch, status→errorType)
       and `src/api/swh.js` (background-proxy, same error shape). _Done
       2026-04-14 session 2 (`8445092`)._
-- [ ] **E. UI.** Vanilla-DOM button + tooltip + click handler, ported from
-      main's `insertSaveIcon`. No jQuery.
+- [x] **E. UI.** Vanilla-DOM button + tooltip + click handler, ported from
+      main's `insertSaveIcon`. No jQuery. _Done 2026-04-14 session 2
+      (`58ef010`). Extended `src/api/swh.js` with `requestSwhSave` while
+      here._
 - [ ] **F. Navigation detector.** `src/content/navigation.js` as described.
 - [ ] **G. Orchestration.** `src/content/main.js` ties it together:
       `Promise.all` for forge + SWH, inflight-dedup Map, cache with TTL,
@@ -179,7 +181,10 @@ _Append one line per meaningful change. Keep terse._
   pass.
 - 2026-04-14 (session 2 cont.) — Phase D complete (`8445092`).
   `src/api/forge.js` and `src/api/swh.js` with uniform
-  `{ok, data|errorType, status}` shape. **Next: Phase E (UI).**
+  `{ok, data|errorType, status}` shape.
+- 2026-04-14 (session 2 cont.) — Phase E complete (`58ef010`). Vanilla
+  DOM `insertSaveIcon` in `src/content/ui.js`; `requestSwhSave` added
+  to the SWH client. **Next: Phase F (navigation detector).**
 
 ## Session handoff — 2026-04-14
 
