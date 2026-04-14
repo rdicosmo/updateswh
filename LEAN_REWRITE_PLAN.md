@@ -136,9 +136,11 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       instance. Log icon states. _Done 2026-04-14 session 2. Surfaced
       one regression (red button on GitHub caused by optional host
       permissions without runtime grant); fixed in `77f077d`._
-- [ ] **K. Docs.** Rewrite `CONTRIBUTING.md` to match the flat-table style (it
+- [x] **K. Docs.** Rewrite `CONTRIBUTING.md` to match the flat-table style (it
       still describes the old API). Update `README.md` developer section.
-      Update `CLAUDE.md`.
+      Update `CLAUDE.md`. _Done 2026-04-14 session 2 (`b13d8b8`). Also
+      wired `make` to `npm run build` and extended `make clean` to wipe
+      build artefacts._
 - [ ] **L. Merge to main, delete orphan branches** (the 15 listed above).
 
 ## Hygiene — files to delete in Phase A
