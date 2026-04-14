@@ -146,3 +146,26 @@ Once tested on your new forge and on the existing ones, please open a pull
 request at <https://github.com/rdicosmo/updateswh/>.
 
 Thank you!
+
+## Releasing a new version
+
+Maintainers only. The three zip bundles produced by `make` are uploaded to the
+Firefox, Chrome and Edge stores by the project owner. Store dashboard URLs and
+account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
+
+1. Bump the version in **both** sources of truth:
+   - `src/manifest-base.json` → `"version"` (drives
+     `extension/manifest.json` and `extension/manifest-v3.json`)
+   - `package.json` → `"version"`
+2. `make` — runs `npm run build` and packages
+   `FireFox.zip` / `Chrome.zip` / `Edge.zip` at the repo root.
+3. Verify both generated manifests report the new version:
+   ```
+   grep '"version"' extension/manifest.json extension/manifest-v3.json
+   ```
+4. `npm test` — 42 tests must stay green.
+5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
+6. Push `main` and the tag: `git push origin main vX.Y.Z`.
+7. Upload the three zips to the three store dashboards (see
+   `HOWTO-RELEASE` for login URLs and account bindings).
+
