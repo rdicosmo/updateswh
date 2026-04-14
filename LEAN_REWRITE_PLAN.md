@@ -116,9 +116,11 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       here._
 - [x] **F. Navigation detector.** `src/content/navigation.js` as described.
       _Done 2026-04-14 session 2 (`af72dff`)._
-- [ ] **G. Orchestration.** `src/content/main.js` ties it together:
+- [x] **G. Orchestration.** `src/content/main.js` ties it together:
       `Promise.all` for forge + SWH, inflight-dedup Map, cache with TTL,
-      navigation callback.
+      navigation callback. _Done 2026-04-14 session 2 (`5cd6a82`). Also
+      vendored `src/utils/dateUtils.js` from refactor; 29/29 unit tests
+      pass._
 - [ ] **H. Manifests.** Update `src/manifest-base.json`: drop jQuery from
       `content_scripts.js` list, declare optional host permissions for forge
       APIs, keep SWH as required.
@@ -188,7 +190,10 @@ _Append one line per meaningful change. Keep terse._
   to the SWH client.
 - 2026-04-14 (session 2 cont.) — Phase F complete (`af72dff`).
   `src/content/navigation.js`: popstate + turbo:load + turbo:render +
-  500ms poll. **Next: Phase G (orchestration).**
+  500ms poll.
+- 2026-04-14 (session 2 cont.) — Phase G complete (`5cd6a82`).
+  Orchestration in `src/content/main.js`; dateUtils vendored; 29/29
+  tests pass. **Next: Phase H (manifests).**
 
 ## Session handoff — 2026-04-14
 
