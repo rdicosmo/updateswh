@@ -1,0 +1,88 @@
+{
+  "name": "UpdateSWH",
+  "version": "0.6.8",
+  "description": "Check archival state of a source code repository and propose to update it if needed.",
+  "icons": {
+    "16": "img/icon-16.png",
+    "32": "img/icon-32.png",
+    "48": "img/icon-48.png",
+    "64": "img/icon-64.png",
+    "128": "img/icon-128.png"
+  },
+  "browser_action_v2": {
+    "default_title": "UpdateSWH",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/img/icon-16.png",
+      "32": "/img/icon-32.png",
+      "48": "/img/icon-48.png",
+      "128": "/img/icon-128.png"
+    }
+  },
+  "action_v3": {
+    "default_title": "UpdateSWH",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/img/icon-16.png",
+      "32": "/img/icon-32.png",
+      "48": "/img/icon-48.png",
+      "128": "/img/icon-128.png"
+    }
+  },
+  "background_v2": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "background_v3": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "css": [
+        "css/updateswh.css"
+      ],
+      "js": [
+        "js/jquery-3.6.0.min.js",
+        "updateswh.js"
+      ]
+    }
+  ],
+  "content_security_policy_v2": "script-src 'self'; object-src 'self'; connect-src 'self' https://archive.softwareheritage.org/",
+  "content_security_policy_v3": {
+    "extension_pages": "default-src 'self'; object-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self' https://archive.softwareheritage.org/"
+  },
+  "web_accessible_resources_v2": [
+    "*.html"
+  ],
+  "web_accessible_resources_v3": {
+    "matches": [
+      "<all_urls>"
+    ],
+    "resources": []
+  },
+  "options_ui_v2": {
+    "page": "options.html",
+    "chrome_style": true
+  },
+  "options_ui_v3": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "optional_permissions": [
+    "<all_urls>"
+  ],
+  "host_permissions": [
+    "https://archive.softwareheritage.org/*"
+  ]
+}
+

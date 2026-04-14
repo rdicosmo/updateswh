@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+dist/
+package-lock.json
+Chrome.zip
+Edge.zip
+FireFox.zip
+HOWTORESUME
+.#*
+*~
