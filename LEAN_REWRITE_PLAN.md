@@ -126,8 +126,11 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       APIs, keep SWH as required. _Done 2026-04-14 session 2 (`7876065`).
       Also untracked build artifacts (`extension/updateswh.js`,
       `extension/manifest*.json`) and deleted jquery shim._
-- [ ] **I. Tests.** Run `npm test` — both unit test files must pass as-is.
-      Add tests for inflight-dedup cache and navigation detector.
+- [x] **I. Tests.** Run `npm test` — both unit test files must pass as-is.
+      Add tests for inflight-dedup cache and navigation detector. _Done
+      2026-04-14 session 2 (`e30c939`). Extracted cache to
+      `src/utils/cache.js`; 42/42 tests pass (6 cache, 7 nav, 19
+      forges, 10 dateUtils)._
 - [ ] **J. Manual smoke.** Load unpacked in Firefox + Chrome, walk through
       GitHub SPA navigation, GitLab, Bitbucket, Codeberg, custom Gitea
       instance. Log icon states.
@@ -198,8 +201,10 @@ _Append one line per meaningful change. Keep terse._
   tests pass.
 - 2026-04-14 (session 2 cont.) — Phase H complete (`7876065`).
   Manifests drop jQuery; build artifacts untracked. Bundle size:
-  18.74 KB (vs. ~85 KB jQuery + 20 KB old monolith). **Next: Phase I
-  (unit tests for inflight-dedup cache and navigation detector).**
+  18.74 KB (vs. ~85 KB jQuery + 20 KB old monolith).
+- 2026-04-14 (session 2 cont.) — Phase I complete (`e30c939`). Cache
+  extracted to `src/utils/cache.js`; tests for cache and navigation
+  added; 42/42 pass. **Next: Phase J (manual smoke in browsers).**
 
 ## Session handoff — 2026-04-14
 
