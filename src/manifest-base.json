@@ -58,12 +58,6 @@
   "web_accessible_resources_v2": [
     "*.html"
   ],
-  "web_accessible_resources_v3": {
-    "matches": [
-      "<all_urls>"
-    ],
-    "resources": []
-  },
   "options_ui_v2": {
     "page": "options.html",
     "chrome_style": true

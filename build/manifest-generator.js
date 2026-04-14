@@ -42,7 +42,9 @@ function generateManifest(version) {
         manifest.action = baseManifest.action_v3;
         manifest.background = baseManifest.background_v3;
         manifest.content_security_policy = baseManifest.content_security_policy_v3;
-        manifest.web_accessible_resources = baseManifest.web_accessible_resources_v3;
+        if (baseManifest.web_accessible_resources_v3) {
+            manifest.web_accessible_resources = baseManifest.web_accessible_resources_v3;
+        }
         manifest.options_ui = baseManifest.options_ui_v3;
         manifest.permissions = baseManifest.permissions;
         manifest.host_permissions = baseManifest.host_permissions;
