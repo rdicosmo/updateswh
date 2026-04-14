@@ -135,3 +135,30 @@ prefix inherited from main.
 3. Rewriting tests to match a design decision is not test deletion.
    The scope and coverage stayed equivalent; only the API surface
    changed.
+
+---
+
+## 2026-04-14 — Session 2 cont.: smoke test on GitHub, red-button fix
+
+**What happened.** After completing Phases A–I and running `npm run
+build`, Roberto loaded the extension. GitLab instances worked; GitHub
+showed a red button on every project page. Console screenshots
+(`/tmp/console-gh-problem*.png`) contained only GitHub's own errors —
+none from the extension — which narrowed the failure to a silent
+permission denial.
+
+Root cause: Phase H implemented "declare optional host permissions for
+forge APIs" literally by moving `<all_urls>` from required
+`host_permissions` to `optional_permissions`. But the runtime prompt
+that asks the user to grant those permissions was always in *Future
+work*, not in this PR. End state: content script can't fetch
+api.github.com, the fetch catch returns `FORGE_API_ERROR`, the button
+is red. Fixed by restoring `<all_urls>` to required permissions.
+
+**Lesson.** The plan treated "optional host permissions" as a
+single-line Phase H item. It isn't — it's a two-part story (manifest
+declaration + runtime grant UI), and shipping only part one leaves
+the extension broken. When a plan line could plausibly be split
+across phases, either do both parts together or keep the old
+behaviour until the second part lands. Halfway is worse than either
+end.
