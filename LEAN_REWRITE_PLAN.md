@@ -114,7 +114,8 @@ Target total: ~500 lines of new source replacing 640 lines of monolith.
       main's `insertSaveIcon`. No jQuery. _Done 2026-04-14 session 2
       (`58ef010`). Extended `src/api/swh.js` with `requestSwhSave` while
       here._
-- [ ] **F. Navigation detector.** `src/content/navigation.js` as described.
+- [x] **F. Navigation detector.** `src/content/navigation.js` as described.
+      _Done 2026-04-14 session 2 (`af72dff`)._
 - [ ] **G. Orchestration.** `src/content/main.js` ties it together:
       `Promise.all` for forge + SWH, inflight-dedup Map, cache with TTL,
       navigation callback.
@@ -184,7 +185,10 @@ _Append one line per meaningful change. Keep terse._
   `{ok, data|errorType, status}` shape.
 - 2026-04-14 (session 2 cont.) — Phase E complete (`58ef010`). Vanilla
   DOM `insertSaveIcon` in `src/content/ui.js`; `requestSwhSave` added
-  to the SWH client. **Next: Phase F (navigation detector).**
+  to the SWH client.
+- 2026-04-14 (session 2 cont.) — Phase F complete (`af72dff`).
+  `src/content/navigation.js`: popstate + turbo:load + turbo:render +
+  500ms poll. **Next: Phase G (orchestration).**
 
 ## Session handoff — 2026-04-14
 
