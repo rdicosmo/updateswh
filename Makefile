@@ -1,6 +1,6 @@
-.PHONY: clean all
+.PHONY: clean all build
 
-all: clean
+all: clean build
 	printf "Preparing FireFox.zip\n"
 	(cd extension; zip -r ../FireFox.zip . -x manifest-v3.json)
 	printf "Preparing Chrome.zip\n"
@@ -10,5 +10,9 @@ all: clean
 	printf "Preparing Edge.zip (just a copy of Chrome.zip)\n"
 	cp Chrome.zip Edge.zip
 
+build:
+	npm run build
+
 clean:
-	rm -f FireFox.zip Chrome.zip
+	rm -f FireFox.zip Chrome.zip Edge.zip
+	rm -f extension/updateswh.js extension/manifest.json extension/manifest-v3.json
