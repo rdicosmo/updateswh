@@ -19,8 +19,6 @@ export default defineConfig({
   },
   define: {
     'global': 'globalThis'
-  },
-  // jQuery is loaded separately in the manifest, so we don't bundle it
-  // It will be available as $ in the browser context
+  }
 });
 

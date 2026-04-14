@@ -35,6 +35,9 @@ function generateManifest(version) {
             ...baseManifest.permissions,
             ...baseManifest.host_permissions
         ];
+        if (baseManifest.optional_permissions) {
+            manifest.optional_permissions = baseManifest.optional_permissions;
+        }
     } else if (version === 3) {
         manifest.action = baseManifest.action_v3;
         manifest.background = baseManifest.background_v3;
@@ -43,6 +46,9 @@ function generateManifest(version) {
         manifest.options_ui = baseManifest.options_ui_v3;
         manifest.permissions = baseManifest.permissions;
         manifest.host_permissions = baseManifest.host_permissions;
+        if (baseManifest.optional_permissions) {
+            manifest.optional_host_permissions = baseManifest.optional_permissions;
+        }
     }
 
     manifest.content_scripts = baseManifest.content_scripts;
