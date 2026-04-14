@@ -1,107 +1,135 @@
-/**
- * Unit tests for forge handler URL pattern matching
- */
-import { GitHub } from '../../src/forges/GitHub.js';
-import { Bitbucket } from '../../src/forges/Bitbucket.js';
-import { GitLab } from '../../src/forges/GitLab.js';
-import { Gitea } from '../../src/forges/Gitea.js';
-import { findMatchingForge, getDefaultForgeHandlers } from '../../src/forges/index.js';
+import {
+    DEFAULT_FORGES,
+    matches,
+    findMatchingForge,
+    setupForge,
+    buildForges,
+    gitlabInstanceHandler,
+    giteaInstanceHandler,
+} from "../../src/forges.js";
 
-describe('Forge Handlers', () => {
-    describe('GitHub', () => {
-        const handler = new GitHub();
+function byName(name) {
+    return DEFAULT_FORGES.find((f) => f.name === name);
+}
 
-        test('should match GitHub repository URLs', () => {
-            expect(handler.matches('https://github.com/user/repo')).toBe(true);
-            expect(handler.matches('https://github.com/user/repo/issues')).toBe(true);
-            expect(handler.matches('http://github.com/user/repo')).toBe(true);
+describe("forges — flat table", () => {
+    describe("GitHub", () => {
+        const forge = byName("GitHub");
+
+        test("matches repository URLs", () => {
+            expect(matches(forge, "https://github.com/user/repo")).toBe(true);
+            expect(matches(forge, "https://github.com/user/repo/issues")).toBe(true);
+            expect(matches(forge, "http://github.com/user/repo")).toBe(true);
         });
 
-        test('should reject non-repository GitHub URLs', () => {
-            expect(handler.matches('https://github.com/features')).toBe(false);
-            expect(handler.matches('https://github.com/marketplace')).toBe(false);
-            expect(handler.matches('https://github.com/user/repo/search?q=test')).toBe(false);
+        test("rejects non-repository URLs", () => {
+            expect(matches(forge, "https://github.com/features")).toBe(false);
+            expect(matches(forge, "https://github.com/marketplace")).toBe(false);
+            expect(matches(forge, "https://github.com/user/repo/search?q=test")).toBe(false);
         });
 
-        test('should extract project information correctly', () => {
-            const result = handler.setup('https://github.com/user/repo');
-            expect(result.projecturl).toBe('https://github.com/user/repo');
-            expect(result.userproject).toBe('user/repo');
-            expect(result.forgeapiurl).toBe('https://api.github.com/repos/user/repo');
-        });
-    });
-
-    describe('GitLab', () => {
-        const handler = new GitLab();
-
-        test('should match GitLab repository URLs', () => {
-            expect(handler.matches('https://gitlab.com/user/repo')).toBe(true);
-            expect(handler.matches('https://gitlab.com/user/repo/-/issues')).toBe(true);
-        });
-
-        test('should match GitLab subgroup URLs', () => {
-            expect(handler.matches('https://gitlab.com/org/subgroup/project')).toBe(true);
-            expect(handler.matches('https://gitlab.com/org/sub1/sub2/project')).toBe(true);
-        });
-
-        test('should reject non-repository GitLab URLs', () => {
-            expect(handler.matches('https://gitlab.com/explore')).toBe(false);
-        });
-
-        test('should encode path correctly for subgroups', () => {
-            const result = handler.setup('https://gitlab.com/org/subgroup/project');
-            expect(result.userproject).toBe(encodeURIComponent('org/subgroup/project'));
+        test("setup extracts project info", () => {
+            const r = setupForge("https://github.com/user/repo", forge);
+            expect(r.projecturl).toBe("https://github.com/user/repo");
+            expect(r.userproject).toBe("user/repo");
+            expect(r.forgeapiurl).toBe("https://api.github.com/repos/user/repo");
+            expect(r.forgename).toBe("GitHub");
         });
     });
 
-    describe('Bitbucket', () => {
-        const handler = new Bitbucket();
+    describe("GitLab (gitlab.com)", () => {
+        const forge = byName("GitLab");
 
-        test('should match Bitbucket repository URLs', () => {
-            expect(handler.matches('https://bitbucket.org/user/repo')).toBe(true);
+        test("matches repository URLs", () => {
+            expect(matches(forge, "https://gitlab.com/user/repo")).toBe(true);
+            expect(matches(forge, "https://gitlab.com/user/repo/-/issues")).toBe(true);
         });
 
-        test('should reject non-repository Bitbucket URLs', () => {
-            expect(handler.matches('https://bitbucket.org/dashboard')).toBe(false);
-            expect(handler.matches('https://bitbucket.org/product')).toBe(false);
-        });
-    });
-
-    describe('Gitea', () => {
-        const handler = new Gitea('https://codeberg.org');
-
-        test('should match Gitea repository URLs', () => {
-            expect(handler.matches('https://codeberg.org/user/repo')).toBe(true);
+        test("matches subgroup URLs", () => {
+            expect(matches(forge, "https://gitlab.com/org/subgroup/project")).toBe(true);
+            expect(matches(forge, "https://gitlab.com/org/sub1/sub2/project")).toBe(true);
         });
 
-        test('should reject non-repository Gitea URLs', () => {
-            expect(handler.matches('https://codeberg.org/user')).toBe(false);
-            expect(handler.matches('https://codeberg.org/explore')).toBe(false);
+        test("rejects explore", () => {
+            expect(matches(forge, "https://gitlab.com/explore")).toBe(false);
+        });
+
+        test("setup path-encodes subgroups", () => {
+            const r = setupForge("https://gitlab.com/org/subgroup/project", forge);
+            expect(r.userproject).toBe(encodeURIComponent("org/subgroup/project"));
         });
     });
 
-    describe('findMatchingForge', () => {
-        const handlers = getDefaultForgeHandlers();
+    describe("Bitbucket", () => {
+        const forge = byName("Bitbucket");
 
-        test('should find GitHub handler', () => {
-            const handler = findMatchingForge('https://github.com/user/repo', handlers);
-            expect(handler).toBeInstanceOf(GitHub);
+        test("matches repository URLs", () => {
+            expect(matches(forge, "https://bitbucket.org/user/repo")).toBe(true);
         });
 
-        test('should find GitLab handler', () => {
-            const handler = findMatchingForge('https://gitlab.com/user/repo', handlers);
-            expect(handler).toBeInstanceOf(GitLab);
+        test("rejects non-repository URLs", () => {
+            expect(matches(forge, "https://bitbucket.org/dashboard")).toBe(false);
+            expect(matches(forge, "https://bitbucket.org/product")).toBe(false);
+        });
+    });
+
+    describe("Gitea (codeberg.org as known instance)", () => {
+        test("matches codeberg via known-list row", () => {
+            const forge = findMatchingForge("https://codeberg.org/alice/repo");
+            expect(forge).not.toBeNull();
+            expect(forge.name).toBe("Gitea instance");
         });
 
-        test('should find Bitbucket handler', () => {
-            const handler = findMatchingForge('https://bitbucket.org/user/repo', handlers);
-            expect(handler).toBeInstanceOf(Bitbucket);
+        test("rejects non-repository codeberg URLs", () => {
+            expect(findMatchingForge("https://codeberg.org/alice")).toBeNull();
+            expect(findMatchingForge("https://codeberg.org/explore/")).toBeNull();
+            expect(findMatchingForge("https://codeberg.org/user/foo")).toBeNull();
         });
 
-        test('should return null for unmatched URLs', () => {
-            const handler = findMatchingForge('https://example.com/repo', handlers);
-            expect(handler).toBeNull();
+        test("setup builds codeberg API url", () => {
+            const forge = findMatchingForge("https://codeberg.org/alice/repo");
+            const r = setupForge("https://codeberg.org/alice/repo", forge);
+            expect(r.forgeapiurl).toBe("https://codeberg.org/api/v1/repos/alice/repo");
+        });
+    });
+
+    describe("findMatchingForge", () => {
+        test("finds GitHub", () => {
+            expect(findMatchingForge("https://github.com/user/repo").name).toBe("GitHub");
+        });
+
+        test("finds GitLab", () => {
+            expect(findMatchingForge("https://gitlab.com/user/repo").name).toBe("GitLab");
+        });
+
+        test("finds Bitbucket", () => {
+            expect(findMatchingForge("https://bitbucket.org/user/repo").name).toBe("Bitbucket");
+        });
+
+        test("returns null for unmatched URLs", () => {
+            expect(findMatchingForge("https://example.com/repo")).toBeNull();
+        });
+    });
+
+    describe("user-defined instances", () => {
+        test("gitlabInstanceHandler matches a custom domain", () => {
+            const custom = gitlabInstanceHandler("gitlab.example.test");
+            expect(matches(custom, "https://gitlab.example.test/user/repo")).toBe(true);
+            expect(matches(custom, "https://gitlab.example.test/users/sign_in")).toBe(false);
+        });
+
+        test("giteaInstanceHandler matches a custom domain", () => {
+            const custom = giteaInstanceHandler("git.example.test");
+            expect(matches(custom, "https://git.example.test/alice/repo")).toBe(true);
+            expect(matches(custom, "https://git.example.test/explore/")).toBe(false);
+            expect(matches(custom, "https://git.example.test/user/alice")).toBe(false);
+        });
+
+        test("buildForges appends user-defined gitlabs and giteas", () => {
+            const list = buildForges({ gitlabs: "gl.example.test", giteas: "g.example.test" });
+            expect(list.length).toBe(DEFAULT_FORGES.length + 2);
+            expect(findMatchingForge("https://gl.example.test/alice/repo", list).name).toBe("GitLab instance");
+            expect(findMatchingForge("https://g.example.test/alice/repo",  list).name).toBe("Gitea instance");
         });
     });
 });
-
