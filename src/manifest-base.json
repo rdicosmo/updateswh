@@ -1,6 +1,6 @@
 {
   "name": "UpdateSWH",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Check archival state of a source code repository and propose to update it if needed.",
   "icons": {
     "16": "img/icon-16.png",
