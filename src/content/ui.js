@@ -4,7 +4,7 @@ import { openOptionsPage } from "../permissions.js";
 
 const SELECTOR = ".swh-save-button";
 const GRANT_SELECTOR = ".swh-grant-button";
-const SWH_HELP_URL = "https://www.softwareheritage.org/browser-extension/#missingrepo";
+const SWH_HELP_URL = "https://www.softwareheritage.org/updateswh-8-x/#missingrepo";
 const SWH_SAVE_LIST_URL = "https://archive.softwareheritage.org/save/list/";
 const SAVE_ICON_SVG =
     '<svg xmlns="http://www.w3.org/2000/svg" height="3em" viewBox="0 0 448 512">' +

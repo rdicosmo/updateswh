@@ -39,7 +39,7 @@ document.getElementById("options").addEventListener("click",
 document.getElementById("homepage").addEventListener("click",
     function () {
         browser.tabs.create({
-            url: "https://softwareheritage.org/browser-extensions/#UpdateSWH"
+            url: "https://www.softwareheritage.org/updateswh-8-x/"
         });
 	window.close()
     }

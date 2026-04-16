@@ -1,6 +1,6 @@
 const browser = (typeof chrome !== "undefined" && chrome) ? chrome : globalThis.browser;
 
-const WELCOME_URL = "https://softwareheritage.org/browser-extension";
+const WELCOME_URL = "https://www.softwareheritage.org/updateswh-8-x/";
 
 browser.runtime.onInstalled.addListener((details) => {
     if (details.reason === "install") {
