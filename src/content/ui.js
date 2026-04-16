@@ -1,7 +1,9 @@
 import { COLOR_CODES } from "../constants.js";
 import { requestSwhSave } from "../api/swh.js";
+import { openOptionsPage } from "../permissions.js";
 
 const SELECTOR = ".swh-save-button";
+const GRANT_SELECTOR = ".swh-grant-button";
 const SWH_HELP_URL = "https://www.softwareheritage.org/browser-extension/#missingrepo";
 const SWH_SAVE_LIST_URL = "https://archive.softwareheritage.org/save/list/";
 const SAVE_ICON_SVG =
@@ -103,6 +105,43 @@ export function saveIconColor() {
     if (!el) return null;
     for (const c of Object.values(COLOR_CODES)) if (el.classList.contains(c)) return c;
     return null;
+}
+
+export function removeGrantButton() {
+    const existing = document.querySelector(GRANT_SELECTOR);
+    if (existing) existing.remove();
+}
+
+export function grantButtonPresent() {
+    return !!document.querySelector(GRANT_SELECTOR);
+}
+
+/**
+ * Show a distinct dashed-outline button when the extension lacks
+ * host permission for the current forge.  Clicking it opens the
+ * extension's options page where the user can grant permissions.
+ *
+ * (Content scripts cannot call chrome.permissions.request directly;
+ * the options page has the grant UI.)
+ */
+export function insertGrantButton(forgeDomain) {
+    if (document.querySelector(GRANT_SELECTOR)) return;
+    if (document.querySelector(SELECTOR)) return;
+
+    const btn = document.createElement("div");
+    btn.className = "swh-grant-button";
+    const icon = document.createElement("div");
+    icon.className = "swh-save-icon";
+    icon.innerHTML = SAVE_ICON_SVG;
+    btn.appendChild(icon);
+    btn.setAttribute(
+        "title",
+        `UpdateSWH needs permission for ${forgeDomain}.\nClick to open settings and grant access.`,
+    );
+    btn.addEventListener("click", () => {
+        openOptionsPage();
+    });
+    document.body.appendChild(btn);
 }
 
 export function insertSaveIcon(results, settings = {}) {

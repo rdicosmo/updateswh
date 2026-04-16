@@ -57,3 +57,39 @@
 .swh-save-button.grey {
     background: #D3D3D3;
 }
+
+/* Grant-permission button: distinct dashed outline */
+.swh-grant-button {
+    padding: 0;
+    margin: 0;
+    color: #666;
+    font-size: 6px;
+    font-family: "Helvetica", "Arial", "sans-serif";
+    text-align: center;
+    float: right;
+    border-radius: 20px 0 0 20px;
+    cursor: pointer;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #999;
+    border-right: none;
+    background: rgba(220, 220, 220, 0.7);
+    height: 30px;
+    width: 30px;
+    position: fixed;
+    right: -5px;
+    top: 33%;
+    z-index: 9999999999;
+    box-shadow: none;
+}
+.swh-grant-button:hover {
+    right: 0;
+    opacity: 1;
+    background: rgba(200, 200, 200, 0.9);
+}
+.swh-grant-button .swh-save-icon {
+    margin-left: 3px;
+    margin-top: 2px;
+}

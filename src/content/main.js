@@ -4,12 +4,21 @@ import { fetchForgeApi, githubAuthHeaders } from "../api/forge.js";
 import { fetchSwhLatestVisit } from "../api/swh.js";
 import { isArchiveUpToDate } from "../utils/dateUtils.js";
 import { memoizeWithTTL } from "../utils/cache.js";
-import { insertSaveIcon, removeSaveIcon, saveIconPresent, saveIconColor } from "./ui.js";
+import { hasOrigins, originPattern } from "../permissions.js";
+import {
+    insertSaveIcon, removeSaveIcon, saveIconPresent, saveIconColor,
+    insertGrantButton, removeGrantButton, grantButtonPresent,
+} from "./ui.js";
 import { onNavigation } from "./navigation.js";
 
 function getBrowser() {
     if (typeof chrome !== "undefined" && chrome?.storage) return chrome;
     return globalThis.browser;
+}
+
+let debug = false;
+function dbg(...args) {
+    if (debug) console.log("[SWH]", ...args);
 }
 
 function loadSettings() {
@@ -18,18 +27,25 @@ function loadSettings() {
     });
 }
 
+function forgeDomainFromUrl(url) {
+    try { return new URL(url).hostname; } catch { return null; }
+}
+
 async function computeResults(url, forges, settings) {
     const forge = findMatchingForge(url, forges);
     if (!forge) return null;
 
     const specs = setupForge(url, forge);
     const { projecturl, forgeapiurl, forgename, lastupdate } = specs;
+    dbg("computeResults", { projecturl, forgeapiurl, forgename });
 
     const headers = forgename === "GitHub" ? githubAuthHeaders(settings.ghtoken) : {};
     const [forgeResult, swhResult] = await Promise.all([
         fetchForgeApi(forgeapiurl, { headers }),
         fetchSwhLatestVisit(projecturl, { swhtoken: settings.swhtoken }),
     ]);
+    dbg("forgeResult", forgeResult.ok, forgeResult.errorType);
+    dbg("swhResult", swhResult.ok, swhResult.errorType);
 
     const results = {
         projecturl,
@@ -58,15 +74,38 @@ async function computeResults(url, forges, settings) {
     } else {
         results.color = COLOR_CODES.OUT_OF_DATE;
     }
+    dbg("result color", results.color);
     return results;
 }
 
 async function handle(url, forges, settings, getResults) {
+    dbg("handle", url);
     const forge = findMatchingForge(url, forges);
     if (!forge) {
+        dbg("no forge match for", url);
         removeSaveIcon();
+        removeGrantButton();
         return;
     }
+    dbg("forge match:", forge.name);
+
+    // Check host permission before attempting API calls
+    const domain = forgeDomainFromUrl(url);
+    if (domain) {
+        const pattern = originPattern(domain);
+        dbg("checking permission for", pattern);
+        const permitted = await hasOrigins(pattern);
+        dbg("permission result:", permitted);
+        if (!permitted) {
+            removeSaveIcon();
+            if (!grantButtonPresent()) {
+                insertGrantButton(domain);
+            }
+            return;
+        }
+    }
+
+    removeGrantButton();
     if (saveIconPresent() && saveIconColor() !== COLOR_CODES.API_LIMIT) return;
 
     const results = await getResults(url);
@@ -77,13 +116,22 @@ async function handle(url, forges, settings, getResults) {
 
 export async function start() {
     const settings = await loadSettings();
+    debug = !!settings.swhdebug;
+    dbg("start — settings loaded", {
+        gitlabs: settings.gitlabs,
+        giteas: settings.giteas,
+        customForgeOrigins: settings.customForgeOrigins,
+        swhdebug: settings.swhdebug,
+    });
     const forges = buildForges({ gitlabs: settings.gitlabs, giteas: settings.giteas });
+    dbg("forges built:", forges.length, "entries");
     const getResults = memoizeWithTTL((url) => computeResults(url, forges, settings), { ttlMs: CACHE_TTL_MS });
 
     const run = () => handle(window.location.href, forges, settings, getResults);
     run();
     onNavigation(() => {
         removeSaveIcon();
+        removeGrantButton();
         run();
     });
 }
