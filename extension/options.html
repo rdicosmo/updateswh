@@ -7,6 +7,12 @@
 
 <body>
 
+<div class="option" id="permissions-section">
+    <label>Forge permissions</label>
+    <p id="permissions-status">Checking...</p>
+    <button id="grant-all-btn" type="button">Grant access to all built-in forges</button>
+</div>
+
 <div class="option">
     <label>
         <input type="checkbox" id="showrequest">
@@ -63,6 +69,8 @@
     <p>
         Add only the domain name(s) one per line (e.g. try.gitea.io)
     </p>
+
+    <button id="save-forges-btn" type="button">Save custom forge domains</button>
 
 </div>
 

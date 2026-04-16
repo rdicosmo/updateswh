@@ -20,3 +20,47 @@ p {
 label {
     font-size: 120%;
 }
+
+#permissions-section {
+    background: #f0f4f8;
+    border: 1px solid #ccd;
+    border-radius: 6px;
+    padding: 12px 16px;
+}
+
+#grant-all-btn {
+    margin-top: 8px;
+    padding: 6px 16px;
+    font-size: 100%;
+    cursor: pointer;
+}
+
+#grant-all-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.forge-origin-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0;
+    font-size: 90%;
+}
+
+.forge-origin-row .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.forge-origin-row .dot.granted { background: #2a2; }
+.forge-origin-row .dot.missing { background: #c44; }
+
+#save-forges-btn {
+    margin-top: 8px;
+    padding: 6px 16px;
+    font-size: 100%;
+    cursor: pointer;
+}
