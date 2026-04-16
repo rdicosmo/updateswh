@@ -14,6 +14,22 @@ of the repository currently shown:
 - **brown** — last archival visit did not complete; click retries
 - **orange** — SWH rate limit reached (an access token can help)
 - **red** — forge API request failed (private repo, wrong settings, …)
+- **dashed outline** — the extension needs host permission for this forge;
+  click the button to grant access
+
+### Permissions
+
+On first install the options page opens automatically.  Click **"Grant access
+to all built-in forges"** to allow the extension to query the APIs of GitHub,
+Bitbucket, GitLab and the other default forges.
+
+You can grant or revoke individual forge permissions at any time from the
+options page.  For self-hosted GitLab or Gitea instances, add the domain in
+the options page and click **"Save custom forge domains"** — the browser will
+prompt you for permission for each new domain.
+
+The only host that is always required is `archive.softwareheritage.org` (the
+SWH API).  All forge origins are optional and requested at runtime.
 
 ### Getting the extension for your browser
 
@@ -31,7 +47,7 @@ starting point for designing and developing this extension.
 
 ```
 npm install
-npm test                # jest unit tests (jsdom)
+npm test                # jest unit tests (jsdom); 67 tests
 npm run build           # build extension/updateswh.js + manifests
 make                    # build + zip FireFox.zip / Chrome.zip / Edge.zip
 ```

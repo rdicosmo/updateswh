@@ -162,3 +162,72 @@ the extension broken. When a plan line could plausibly be split
 across phases, either do both parts together or keep the old
 behaviour until the second part lands. Halfway is worse than either
 end.
+
+---
+
+## 2026-04-16 — Session: scoping runtime host permissions
+
+**Context.** After 0.7.1 ships, the only remaining *Future work* item
+that directly affects users is the long-deferred runtime-permission
+story: remove `<all_urls>` and ask per origin. Previous session
+(2026-04-14 session 2) learned the hard way that this is a two-part
+change (manifest + runtime grant UI); shipping only part one broke
+the extension. Cut a new branch `feature/runtime-host-permissions`
+from `main` to do both parts together.
+
+**Decisions (Roberto, 2026-04-16).** Scope: both MV2 and MV3. UX:
+lazy grants with an install-time batch prompt for the five built-in
+forges. Missing-permission button: distinct shape + distinct
+tooltip (not a reused colour code). Options page: extend the
+existing one. Custom-forge flow: request the origin at options
+save-time.
+
+**Non-obvious finding while scoping.** `<all_urls>` lives in *two*
+places: `host_permissions` (network) and `content_scripts.matches`
+(script injection). Only the first was in my mental model at first.
+Both have to move for the store to stop flagging broad access.
+Matches list for the five built-ins is static (generated once from
+`DEFAULT_FORGES`); user-added Gitea/GitLab domains need dynamic
+registration via `chrome.scripting.registerContentScripts` (MV3)
+or `browser.contentScripts.register` (MV2 Firefox) — same shim
+module.
+
+**Plan.** Seven phases RP-A … RP-G documented in
+`LEAN_REWRITE_PLAN.md` under "Runtime host permissions". Per the
+2026-04-14 lesson, no phase is considered shippable in isolation —
+the whole branch lands together.
+
+---
+
+## 2026-04-16 — Session cont.: Firefox smoke test
+
+**What happened.** Implemented RP-A through RP-G, then hit six bugs
+during Firefox ESR smoke testing that required iterative fixes:
+
+1. `chrome.permissions` not available in content scripts — proxied
+   `hasOrigins` through background via `CHECK_PERMISSION` message.
+   Grant button opens options page instead of calling
+   `permissions.request` inline.
+2. `permissions.request` fails in embedded options page
+   (`chrome_style: true`) — switched to `open_in_tab: true`.
+3. `permissions.request` can only grant origins declared in the
+   manifest's `optional_permissions` — added `<all_urls>` to
+   `optional_host_permissions` (stores flag required, not optional).
+4. Firefox normalizes `*://` match patterns into separate `http://`
+   and `https://` entries in `getAll()` — replaced with
+   `permissions.contains` per origin.
+5. `browser = chrome` at top of extension pages shadows the native
+   Firefox `browser` global — `chrome.contentScripts` is undefined,
+   `contentScripts.register` silently fails.
+6. Even after the `globalThis.browser` fix,
+   `contentScripts.register` returns `undefined` on Firefox ESR —
+   replaced with `tabs.onUpdated` + `tabs.executeScript` in the
+   background script. Reliable across all Firefox versions.
+
+**Lesson.** The gap between "works in unit tests with stubs" and
+"works in Firefox ESR" is wide for WebExtension permission APIs.
+The `chrome` compatibility shim in Firefox is incomplete
+(`contentScripts`, `scripting` missing), and embedded extension
+pages (`about:addons`) have restricted API access.  Future work
+should test on a real Firefox ESR early rather than after all
+phases are coded.

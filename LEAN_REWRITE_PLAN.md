@@ -170,6 +170,137 @@ Kept at root: `README.md`, `CONTRIBUTING.md` (rewritten), `HOWTO-RELEASE`,
   it can replace the 500 ms polling tick entirely.
 - **Options page: add/remove custom forge instances with per-domain runtime
   permission prompt.** Ties in with the MV3 optional-host-permission story.
+  _In progress on branch `feature/runtime-host-permissions` — see
+  next section._
+
+## Runtime host permissions (branch `feature/runtime-host-permissions`)
+
+Goal: remove `<all_urls>` from `host_permissions` *and* from
+`content_scripts.matches`. Store reviewers flag broad permissions; with
+optional-origin + dynamic content-script registration we can ship a
+minimal baseline and ask for each forge origin on demand.
+
+Scope confirmed 2026-04-16: both MV2 and MV3; lazy-grant UX with an
+install-time batch prompt for the five built-in forge origins; custom
+forges request the origin at options save-time; a distinct button
+shape + tooltip represents "permission missing, click to grant".
+
+### Phases
+
+- [x] **RP-A. Manifest: make forge origins optional.**
+      In `src/manifest-base.json`:
+      - Replace `<all_urls>` in `host_permissions` with an explicit list
+        covering only `https://archive.softwareheritage.org/*` (stays
+        required — SWH proxy).
+      - Add `optional_host_permissions` (MV3) / `optional_permissions`
+        (MV2) with the five built-in forge origins
+        (`https://github.com/*`, `https://bitbucket.org/*`,
+        `https://gitlab.com/*`, plus `GITLAB_KNOWN` / `GITEA_KNOWN`
+        domains enumerated individually).
+      - Replace `<all_urls>` in `content_scripts.matches` with the same
+        five-forge list so the content script only auto-injects on
+        known forges. Custom Gitea/GitLab instances are handled by
+        dynamic registration in RP-D.
+      - Update `build/manifest-generator.js` if the generator's
+        MV2/MV3 split needs the new fields. Verify both emitted
+        manifests.
+
+- [x] **RP-B. Permission helpers module.**
+      New `src/permissions.js`: `hasOrigin(origin)`,
+      `requestOrigins(origins)`, `removeOrigin(origin)`,
+      `listGrantedOrigins()`. Thin wrappers over `chrome.permissions`
+      with Firefox/Chrome parity (both implement `chrome.permissions`
+      under different globals). Unit tests with the existing jsdom
+      setup + a stub `chrome.permissions` double.
+
+- [x] **RP-C. Install-time batch prompt.**
+      In `extension/background.js` `onInstalled` handler (install
+      reason only), open the existing welcome tab AND either
+      (a) call `chrome.permissions.request` from a brief onboarding
+      page bound to a user gesture, or (b) defer entirely to the
+      options page with a prominent "Grant built-in forges" button.
+      Decision: (b) — `permissions.request` requires a user gesture,
+      and `onInstalled` has none. The welcome page (external) stays
+      as-is; add a one-click "Grant access to built-in forges" row
+      at the top of the options page that batch-requests the five
+      built-in origins.
+
+- [x] **RP-D. Custom-forge save-time grant.**
+      `extension/options.js`: when user edits the `gitlabs` / `giteas`
+      textareas, diff the domain list on save and call
+      `chrome.permissions.request({origins: […]})` for each newly
+      added domain (translating `framagit.org` →
+      `https://framagit.org/*`). If the user denies, remove that
+      domain from the textarea and show a status message. On removal
+      of a domain, call `chrome.permissions.remove`.
+      Also register/unregister a dynamic content script for the
+      granted origin: MV3 → `chrome.scripting.registerContentScripts`;
+      MV2 Firefox → `browser.contentScripts.register`. A small
+      shim in `src/permissions.js` handles the split.
+
+- [x] **RP-E. Content-script / UI fallback when permission missing.**
+      A forge page where the user revoked permission (or visits
+      *before* granting during a mid-session edge case) must not
+      silently fail. `src/content/main.js`: when
+      `findMatchingForge(url)` returns a match but
+      `chrome.permissions.contains` is false for that origin, skip
+      the fetch pipeline and call a new `insertGrantButton(...)` in
+      `src/content/ui.js`. Distinct shape per decision 3 — e.g.,
+      same SVG inside a dashed-outline circle (vs. current filled
+      square) — with tooltip "UpdateSWH needs permission for this
+      forge. Click to grant." Click handler calls
+      `chrome.permissions.request` from within the user gesture
+      (content scripts CAN call `permissions.request` when it
+      originates from a page click). On grant, reload the flow.
+      Note: the content script only reaches this branch for domains
+      in the base `content_scripts.matches` list — which by RP-A
+      already covers all built-ins. For post-install revocations
+      this is the correct fallback.
+
+- [x] **RP-F. Tests + smoke.**
+      - Unit tests for `src/permissions.js`.
+      - Extend options.js / options.html with minimal DOM tests if
+        the existing harness supports it (otherwise manual smoke
+        only; options.js is currently untested).
+      - Manual smoke on Firefox + Chrome + Edge: fresh install →
+        options grant button → visit each built-in forge → revoke
+        one origin → verify fallback grant-button renders → click
+        → verify button re-renders correctly. Record results in
+        the journal.
+
+- [x] **RP-G. Docs — full review.**
+      The runtime-permission model changes the extension's UX and
+      architecture significantly. Both `README.md` and
+      `CONTRIBUTING.md` need a thorough review and rewrite, not
+      just a patch:
+      - `README.md`: document the new permission model (what users
+        see on install, how to grant/revoke per-forge permissions,
+        custom forge flow via options page). Remove any language
+        implying the extension silently accesses all sites.
+      - `CONTRIBUTING.md`: update the forge-record contract (the
+        `BUILTIN_FORGE_DOMAINS` export, the manifest match-pattern
+        list, `optional_host_permissions`). Document the dynamic
+        content-script registration path for custom forges.
+        Describe the options-page save flow.
+      - `CLAUDE.md`: replace the `<all_urls>` "Gotchas" entry with
+        a description of the new optional-permission architecture.
+        Update the Architecture section to cover `src/permissions.js`,
+        the options-page permission flow, and the background-script
+        re-registration.
+      Mark this section complete.
+
+### Open questions (call out before starting each phase)
+
+- RP-A: `GITLAB_KNOWN` / `GITEA_KNOWN` are regex alternations. For
+  manifest match patterns we must enumerate them explicitly
+  (`https://framagit.org/*`, `https://codeberg.org/*`, …). Keep
+  that list in `src/forges.js` as a derived constant so the
+  manifest generator and content-script matches stay in sync.
+- RP-D: the existing options.js has no save button — it saves on
+  every `input` event. For permission requests we need a
+  user-gesture-bound control; add an explicit "Save" button for
+  the forge-domain textareas (checkboxes/tokens can keep
+  auto-save).
 
 ## Progress log
 
