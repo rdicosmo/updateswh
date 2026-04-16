@@ -1,6 +1,6 @@
 {
   "name": "UpdateSWH",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Check archival state of a source code repository and propose to update it if needed.",
   "icons": {
     "16": "img/icon-16.png",
@@ -41,7 +41,19 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "*://github.com/*",
+        "*://bitbucket.org/*",
+        "*://gitlab.com/*",
+        "*://0xacab.org/*",
+        "*://gite.lirmm.fr/*",
+        "*://framagit.org/*",
+        "*://gricad-gitlab.univ-grenoble-alpes.fr/*",
+        "*://git.rampin.org/*",
+        "*://codeberg.org/*",
+        "*://git.disroot.org/*",
+        "*://git.minetest.land/*",
+        "*://repo.radio/*",
+        "*://git.fsfe.org/*"
       ],
       "css": [
         "css/updateswh.css"
@@ -60,7 +72,7 @@
   ],
   "options_ui_v2": {
     "page": "options.html",
-    "chrome_style": true
+    "open_in_tab": true
   },
   "options_ui_v3": {
     "page": "options.html",
@@ -69,11 +81,29 @@
   "permissions": [
     "storage",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
-    "<all_urls>",
     "https://archive.softwareheritage.org/*"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>",
+    "*://github.com/*",
+    "*://api.github.com/*",
+    "*://bitbucket.org/*",
+    "*://api.bitbucket.org/*",
+    "*://gitlab.com/*",
+    "*://0xacab.org/*",
+    "*://gite.lirmm.fr/*",
+    "*://framagit.org/*",
+    "*://gricad-gitlab.univ-grenoble-alpes.fr/*",
+    "*://git.rampin.org/*",
+    "*://codeberg.org/*",
+    "*://git.disroot.org/*",
+    "*://git.minetest.land/*",
+    "*://repo.radio/*",
+    "*://git.fsfe.org/*"
   ]
 }
 

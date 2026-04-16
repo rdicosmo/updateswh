@@ -49,8 +49,19 @@ function giteaInstanceSetup(projecturl) {
     };
 }
 
-const GITLAB_KNOWN = "0xacab\\.org|gite\\.lirmm\\.fr|framagit\\.org|gricad-gitlab\\.univ-grenoble-alpes\\.fr";
-const GITEA_KNOWN  = "git\\.rampin\\.org|codeberg\\.org|git\\.disroot\\.org|git\\.minetest\\.land|repo\\.radio|git\\.fsfe\\.org";
+const GITLAB_KNOWN_DOMAINS = ["0xacab.org", "gite.lirmm.fr", "framagit.org", "gricad-gitlab.univ-grenoble-alpes.fr"];
+const GITEA_KNOWN_DOMAINS  = ["git.rampin.org", "codeberg.org", "git.disroot.org", "git.minetest.land", "repo.radio", "git.fsfe.org"];
+
+const GITLAB_KNOWN = GITLAB_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
+const GITEA_KNOWN  = GITEA_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
+
+export const BUILTIN_FORGE_DOMAINS = Object.freeze([
+    "github.com",
+    "bitbucket.org",
+    "gitlab.com",
+    ...GITLAB_KNOWN_DOMAINS,
+    ...GITEA_KNOWN_DOMAINS,
+]);
 
 export const DEFAULT_FORGES = Object.freeze([
     {
