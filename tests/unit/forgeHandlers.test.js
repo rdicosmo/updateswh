@@ -1,5 +1,6 @@
 import {
     DEFAULT_FORGES,
+    BUILTIN_FORGE_DOMAINS,
     matches,
     findMatchingForge,
     setupForge,
@@ -130,6 +131,28 @@ describe("forges — flat table", () => {
             expect(list.length).toBe(DEFAULT_FORGES.length + 2);
             expect(findMatchingForge("https://gl.example.test/alice/repo", list).name).toBe("GitLab instance");
             expect(findMatchingForge("https://g.example.test/alice/repo",  list).name).toBe("Gitea instance");
+        });
+    });
+
+    describe("BUILTIN_FORGE_DOMAINS", () => {
+        test("contains expected domains", () => {
+            expect(BUILTIN_FORGE_DOMAINS).toContain("github.com");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("bitbucket.org");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("gitlab.com");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("codeberg.org");
+        });
+
+        test("every domain matches at least one DEFAULT_FORGES entry", () => {
+            for (const domain of BUILTIN_FORGE_DOMAINS) {
+                // Use /alice/repo — /user/ is rejected by Gitea patterns
+                const url = `https://${domain}/alice/repo`;
+                const forge = findMatchingForge(url);
+                expect(forge).not.toBeNull();
+            }
+        });
+
+        test("is frozen", () => {
+            expect(Object.isFrozen(BUILTIN_FORGE_DOMAINS)).toBe(true);
         });
     });
 });
