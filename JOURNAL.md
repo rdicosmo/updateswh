@@ -231,3 +231,28 @@ The `chrome` compatibility shim in Firefox is incomplete
 pages (`about:addons`) have restricted API access.  Future work
 should test on a real Firefox ESR early rather than after all
 phases are coded.
+
+**Chrome testing.** Loaded unpacked in Chrome (after manifest swap
+to MV3). First failure: `scripting` permission missing — MV3's
+`chrome.scripting.executeScript` requires it. Added to manifest,
+Chrome works.
+
+**Headless Chrome integration tests.** Added 5 smoke tests via
+puppeteer-core + system Chromium: GitHub, GitLab, Codeberg button
+appearance, non-repo page (no button), SPA navigation. Headless
+Chrome does not auto-grant optional host permissions, so the grant
+button appears where the save button would in a real browser —
+test accepts either. All 5 pass in ~19s.
+
+**Version bump.** 0.7.1 → 0.8.0 (major change: permission model).
+
+**Squash.** 19 iterative commits squashed to 9 clean logical
+commits. Backup at `feature/runtime-host-permissions-backup`.
+
+**Lesson.** The iteration count (19 → 9) reflects how many
+Firefox-specific API gaps were invisible to unit tests. The
+headless Chrome tests caught one more (missing `scripting`
+permission). Real-browser testing — both manual and automated —
+must happen earlier in the cycle, not at the end. For
+WebExtension API work, the rule is: one commit → load in
+Firefox ESR → load in headless Chrome → next commit.

@@ -1,4 +1,4 @@
-.PHONY: clean all build
+.PHONY: clean all build test test-chrome
 
 all: clean build
 	printf "Preparing FireFox.zip\n"
@@ -12,6 +12,12 @@ all: clean build
 
 build:
 	npm run build
+
+test:
+	npm test
+
+test-chrome:
+	npm run test:chrome
 
 clean:
 	rm -f FireFox.zip Chrome.zip Edge.zip
