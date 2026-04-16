@@ -2,6 +2,32 @@ if (chrome) {
     browser = chrome
 }
 
+function addForge(hostname, forgeType) {
+    var storageKey = forgeType === 'gitlab' ? 'gitlabs' : 'giteas';
+
+    // Save the domain to storage, then open the options page so the
+    // user can grant permission from there.  permissions.request does
+    // not work reliably from a popup (Firefox closes the popup when
+    // the permission dialog appears, losing the callback).
+    browser.storage.local.get({
+        [storageKey]: ''
+    }, function (items) {
+        var domains = items[storageKey];
+        if (domains === null || domains === '') {
+            domains = hostname;
+        } else {
+            // Avoid duplicates
+            var list = domains.split(/[\s,\n\r]+/).filter(Boolean);
+            if (list.indexOf(hostname) === -1) {
+                domains = domains + '\n' + hostname;
+            }
+        }
+        browser.storage.local.set({ [storageKey]: domains }, function () {
+            browser.runtime.openOptionsPage();
+            window.close();
+        });
+    });
+}
 
 document.getElementById("options").addEventListener("click",
     function () {
@@ -19,66 +45,26 @@ document.getElementById("homepage").addEventListener("click",
     }
 )
 
-
-function addgitlab(hostname){
-  browser.storage.local.get({
-       gitlabs: null
-   }, function (items) {
-       var gl=items.gitlabs;
-       if (gl===null || gl===""){gl=hostname}
-       else {gl=gl + '\n' + hostname};
-       browser.storage.local.set({gitlabs: gl})
-   })
-}
-
-function addgitea(hostname){
-  browser.storage.local.get({
-       giteas: null
-  }, function (items) {
-      var gl=items.giteas;
-      if (gl===null || gl===""){gl=hostname}
-      else {gl=gl + '\n' + hostname};
-      browser.storage.local.set({giteas: gl})
-  })
- }
-
-
-// calling this function inside the listener instead of copying there the exact
-// code does not work: it would be nice to know why
-function getCurrentTabDomain() {
-    browser.tabs.query(
-	{'active': true, 'lastFocusedWindow': true},
-	function(tabs) {
-	    const url = new URL(tabs[0].url);
-	    return(url.hostname)
-    })
-}
-
-
 document.getElementById("addgitlab").addEventListener("click",
-      function () {
-	  browser.tabs.query(
-	      {'active': true, 'lastFocusedWindow': true},
-	      function (tabs) {
-		  const url = new URL(tabs[0].url);
-		  addgitlab(url.hostname);
-		  let reloading = browser.tabs.reload({bypassCache: true});
-		  reloading.then(window.close, window.close)
-	      }
-	  )
-      }
+    function () {
+        browser.tabs.query(
+            { 'active': true, 'lastFocusedWindow': true },
+            function (tabs) {
+                var url = new URL(tabs[0].url);
+                addForge(url.hostname, 'gitlab');
+            }
+        )
+    }
 )
 
 document.getElementById("addgitea").addEventListener("click",
-      function () {
-	  browser.tabs.query(
-	      {'active': true, 'lastFocusedWindow': true},
-	      function (tabs) {
-		  const url = new URL(tabs[0].url);
-		  addgitea(url.hostname);
-		  let reloading = browser.tabs.reload({bypassCache: true});
-		  reloading.then(window.close, window.close)
-	      }
-	  )
-      }
+    function () {
+        browser.tabs.query(
+            { 'active': true, 'lastFocusedWindow': true },
+            function (tabs) {
+                var url = new URL(tabs[0].url);
+                addForge(url.hostname, 'gitea');
+            }
+        )
+    }
 )
