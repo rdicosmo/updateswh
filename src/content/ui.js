@@ -6,6 +6,12 @@ const SELECTOR = ".swh-save-button";
 const GRANT_SELECTOR = ".swh-grant-button";
 const SWH_HELP_URL = "https://www.softwareheritage.org/updateswh-8-x/#missingrepo";
 const SWH_SAVE_LIST_URL = "https://archive.softwareheritage.org/save/list/";
+const SWH_HOME_URL = "https://archive.softwareheritage.org/";
+const SWH_UNREACHABLE_TITLE =
+    "Cannot reach the SWH API from the extension.\n" +
+    "The archive may be behind a bot-challenge page.\n" +
+    "Click to open archive.softwareheritage.org,\n" +
+    "then reload this page.";
 const SAVE_ICON_SVG =
     '<svg xmlns="http://www.w3.org/2000/svg" height="3em" viewBox="0 0 448 512">' +
     '<path d="M48 96V416c0 8.8 7.2 16 16 16H384c8.8 0 16-7.2 16-16V170.5c0-4.2-1.7-8.3-4.7-11.3l33.9-33.9c12 12 18.7 28.3 18.7 45.3V416c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V96C0 60.7 28.7 32 64 32H309.5c17 0 33.3 6.7 45.3 18.7l74.5 74.5-33.9 33.9L320.8 84.7c-.3-.3-.5-.5-.8-.8V184c0 13.3-10.7 24-24 24H104c-13.3 0-24-10.7-24-24V80H64c-8.8 0-16 7.2-16 16zm80-16v80H272V80H128zm32 240a64 64 0 1 1 128 0 64 64 0 1 1 -128 0z"/>' +
@@ -80,6 +86,11 @@ function onSaveClick(btn, projecturl, settings) {
             if (settings.showrequest) {
                 chrome.runtime.sendMessage({ type: "createtab", url: SWH_SAVE_LIST_URL });
             }
+        } else if (result.kind === "challenge" || result.kind === "timeout") {
+            unwrapFromAnchor(btn);
+            setColor(btn, COLOR_CODES.SWH_UNREACHABLE);
+            btn.setAttribute("title", SWH_UNREACHABLE_TITLE);
+            wrapInAnchor(btn, SWH_HOME_URL);
         } else {
             unwrapFromAnchor(btn);
             setColor(btn, COLOR_CODES.FORGE_API_ERROR);
@@ -179,6 +190,12 @@ export function insertSaveIcon(results, settings = {}) {
             "Cannot trigger archival!\nIs archive.softwareheritage.org in maintenance?\nIf not, you used up the API call quota.\nClick to read more on the help page.",
         );
         wrapInAnchor(btn, SWH_HELP_URL);
+        return;
+    }
+
+    if (color === COLOR_CODES.SWH_UNREACHABLE) {
+        btn.setAttribute("title", SWH_UNREACHABLE_TITLE);
+        wrapInAnchor(btn, SWH_HOME_URL);
         return;
     }
 

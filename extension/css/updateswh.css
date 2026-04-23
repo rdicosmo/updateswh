@@ -57,6 +57,11 @@
 .swh-save-button.grey {
     background: #D3D3D3;
 }
+/*The button color when the SWH API is unreachable from the extension
+  (e.g. behind a bot-challenge proxy like Anubis).*/
+.swh-save-button.blue {
+    background: #1e90ff;
+}
 
 /* Grant-permission button: distinct dashed outline */
 .swh-grant-button {

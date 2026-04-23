@@ -9,25 +9,61 @@ browser.runtime.onInstalled.addListener((details) => {
     }
 });
 
-function handleFetchSwhApi(data, sendResponse) {
+// Mirror of src/api/swhResponse.js — kept in sync because the background
+// script is not an ES module and cannot import. If you change one, change the
+// other (tests cover the module copy).
+async function shapeSwhResponse(response) {
+    if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}`, status: response.status };
+    }
+    const ct = response.headers.get("content-type") || "";
+    if (!ct.toLowerCase().includes("application/json")) {
+        return {
+            success: false,
+            status: response.status,
+            error: "Non-JSON response from SWH (possibly bot-challenge page)",
+            kind: "challenge",
+        };
+    }
+    try {
+        const data = await response.json();
+        return { success: true, data };
+    } catch (e) {
+        return {
+            success: false,
+            status: response.status,
+            error: e.message || "JSON parse error",
+            kind: "parse_error",
+        };
+    }
+}
+
+// MV3 Chrome: sendResponse throws if the caller has disconnected (the SW was
+// suspended, the page navigated, or the port closed). Swallow those — the
+// content script has its own timeout and will recover.
+function safeSendResponse(sendResponse, payload) {
+    try {
+        sendResponse(payload);
+    } catch (e) {
+        console.warn("[updateswh] sendResponse failed:", e?.message || e);
+    }
+}
+
+async function handleFetchSwhApi(data, sendResponse) {
     const opts = {
         method: data.method || "GET",
         headers: data.headers || {},
     };
     if (data.body) opts.body = data.body;
 
-    fetch(data.url, opts)
-        .then(async (response) => {
-            if (!response.ok) {
-                sendResponse({ success: false, error: `HTTP ${response.status}`, status: response.status });
-                return;
-            }
-            const body = await response.json();
-            sendResponse({ success: true, data: body });
-        })
-        .catch((error) => {
-            sendResponse({ success: false, error: error.message, status: 0 });
-        });
+    try {
+        const response = await fetch(data.url, opts);
+        const shaped = await shapeSwhResponse(response);
+        safeSendResponse(sendResponse, shaped);
+    } catch (error) {
+        console.warn("[updateswh] SWH fetch failed:", error?.message || error);
+        safeSendResponse(sendResponse, { success: false, error: error.message, status: 0 });
+    }
 }
 
 /* ── Custom forge content-script injection ── */

@@ -5,7 +5,10 @@ export const COLOR_CODES = {
     API_LIMIT: "orange",
     NOT_ARCHIVED: "grey",
     FORGE_API_ERROR: "red",
+    SWH_UNREACHABLE: "blue",
 };
+
+export const SWH_FETCH_TIMEOUT_MS = 15_000;
 
 export const CACHE_TTL_MS = 60_000;
 
