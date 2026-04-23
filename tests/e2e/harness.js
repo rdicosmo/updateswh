@@ -161,6 +161,27 @@ export function sleep(ms) {
 }
 
 /**
+ * Extract the unpacked extension id from the service-worker target URL
+ * (chrome-extension://<id>/background.js).
+ */
+export function extensionId(swTarget) {
+    const m = /^chrome-extension:\/\/([a-z]+)\//.exec(swTarget.url());
+    if (!m) throw new Error(`cannot parse extension id from ${swTarget.url()}`);
+    return m[1];
+}
+
+/**
+ * Set keys in chrome.storage.local by evaluating from the SW context.
+ * Works regardless of whether a page is open, useful for seeding settings
+ * before a test navigation.
+ */
+export async function seedStorage(swCdp, items) {
+    const expr = `new Promise(r => chrome.storage.local.set(${JSON.stringify(items)}, r))`;
+    const out = await swCdp.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true });
+    if (out.exceptionDetails) throw new Error(`seedStorage failed: ${out.exceptionDetails.text}`);
+}
+
+/**
  * Default Fetch rules covering the three request families the content
  * script + background make:
  *   - navigation to https://<forge-host>/<user>/<repo>  → fixture HTML
