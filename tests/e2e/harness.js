@@ -38,17 +38,19 @@ export async function prepareExtensionDir() {
     return dst;
 }
 
-export async function launchBrowser(extensionDir) {
+export async function launchBrowser(extensionDir, { userAgent } = {}) {
+    const args = [
+        `--disable-extensions-except=${extensionDir}`,
+        `--load-extension=${extensionDir}`,
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-features=DialMediaRouteProvider",
+    ];
+    if (userAgent) args.push(`--user-agent=${userAgent}`);
     const browser = await puppeteer.launch({
         executablePath: EXECUTABLE_PATH,
         headless: "new",
-        args: [
-            `--disable-extensions-except=${extensionDir}`,
-            `--load-extension=${extensionDir}`,
-            "--no-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-features=DialMediaRouteProvider",
-        ],
+        args,
     });
     return browser;
 }
@@ -135,12 +137,13 @@ function matchPattern(pattern, url) {
  * `mockPort` is the port of an already-running mock server.
  * `rules` are the Fetch rules applied to BOTH page + SW targets.
  */
-export async function setup({ mockPort, rules, grantAll = true }) {
+export async function setup({ mockPort, rules, grantAll = true, userAgent }) {
     const extensionDir = await prepareExtensionDir();
-    const browser = await launchBrowser(extensionDir);
+    const browser = await launchBrowser(extensionDir, { userAgent });
     const swTarget = await waitForServiceWorker(browser);
     const swCdp = await swTarget.createCDPSession();
-    await interceptFetch(swCdp, rules, { label: "sw" });
+    // Empty rules = run against real network (live scenarios).
+    if (rules?.length) await interceptFetch(swCdp, rules, { label: "sw" });
 
     // Auto-grant optional host permissions by patching permissions.contains
     // in the SW. Scenarios that want to test the grant-button UX pass
@@ -149,7 +152,7 @@ export async function setup({ mockPort, rules, grantAll = true }) {
 
     const page = await browser.newPage();
     const pageCdp = await page.target().createCDPSession();
-    await interceptFetch(pageCdp, rules, { label: "page" });
+    if (rules?.length) await interceptFetch(pageCdp, rules, { label: "page" });
 
 
     const stop = async () => {
