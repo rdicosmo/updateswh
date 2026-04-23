@@ -49,10 +49,29 @@ function safeSendResponse(sendResponse, payload) {
     }
 }
 
+// Identify updateSWH to the SWH side on every API call, so their
+// Anubis (or similar) bot-filter can allow-list API traffic without
+// guessing, and so request logs can distinguish extension traffic from
+// browser traffic. Caller-supplied headers win on key collision — we
+// merge defaults first, overrides second.
+//
+// Note: Chromium MV3 service workers may silently replace User-Agent
+// with the browser's default. X-UpdateSWH-Client is the reliable
+// fallback; send both.
+function defaultSwhHeaders() {
+    const { version = "unknown" } = browser.runtime.getManifest?.() || {};
+    const ua = `updateSWH/${version} (+https://github.com/rdicosmo/updateswh)`;
+    return {
+        "Accept": "application/json",
+        "User-Agent": ua,
+        "X-UpdateSWH-Client": `updateSWH/${version}`,
+    };
+}
+
 async function handleFetchSwhApi(data, sendResponse) {
     const opts = {
         method: data.method || "GET",
-        headers: data.headers || {},
+        headers: { ...defaultSwhHeaders(), ...(data.headers || {}) },
     };
     if (data.body) opts.body = data.body;
 
