@@ -135,12 +135,17 @@ function matchPattern(pattern, url) {
  * `mockPort` is the port of an already-running mock server.
  * `rules` are the Fetch rules applied to BOTH page + SW targets.
  */
-export async function setup({ mockPort, rules }) {
+export async function setup({ mockPort, rules, grantAll = true }) {
     const extensionDir = await prepareExtensionDir();
     const browser = await launchBrowser(extensionDir);
     const swTarget = await waitForServiceWorker(browser);
     const swCdp = await swTarget.createCDPSession();
     await interceptFetch(swCdp, rules, { label: "sw" });
+
+    // Auto-grant optional host permissions by patching permissions.contains
+    // in the SW. Scenarios that want to test the grant-button UX pass
+    // `grantAll: false` and drive the real permission flow themselves.
+    if (grantAll) await grantAllOrigins(swCdp);
 
     const page = await browser.newPage();
     const pageCdp = await page.target().createCDPSession();
@@ -179,6 +184,33 @@ export async function seedStorage(swCdp, items) {
     const expr = `new Promise(r => chrome.storage.local.set(${JSON.stringify(items)}, r))`;
     const out = await swCdp.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true });
     if (out.exceptionDetails) throw new Error(`seedStorage failed: ${out.exceptionDetails.text}`);
+}
+
+/**
+ * Patch chrome.permissions.contains in the background service worker to
+ * always report the origin as granted. Needed in headless Chromium,
+ * which doesn't auto-grant optional host permissions — without this
+ * patch every test page shows the grant-button instead of the save
+ * button on the v0.8.x runtime-host-permissions branch.
+ *
+ * Scenarios that specifically want to exercise the grant-button UX
+ * should omit this call.
+ */
+export async function grantAllOrigins(swCdp) {
+    const expr = `
+        (() => {
+            const answerTrue = (_perms, cb) => {
+                if (typeof cb === "function") { cb(true); return undefined; }
+                return Promise.resolve(true);
+            };
+            chrome.permissions.contains = answerTrue;
+            if (typeof browser !== "undefined" && browser.permissions) {
+                browser.permissions.contains = answerTrue;
+            }
+        })();
+    `;
+    const out = await swCdp.send("Runtime.evaluate", { expression: expr });
+    if (out.exceptionDetails) throw new Error(`grantAllOrigins failed: ${out.exceptionDetails.text}`);
 }
 
 /**

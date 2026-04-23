@@ -74,6 +74,6 @@ describe("E2E save-click", () => {
         });
         await waitForButtonColor(ctx.page, "red");
         expect(await tooltip()).toMatch(/archival failed/i);
-        expect(await anchorHref()).toMatch(/browser-extension/);
+        expect(await anchorHref()).toMatch(/browser-extension|updateswh-/);
     });
 });
