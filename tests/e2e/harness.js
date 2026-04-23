@@ -161,6 +161,52 @@ export function sleep(ms) {
 }
 
 /**
+ * Default Fetch rules covering the three request families the content
+ * script + background make:
+ *   - navigation to https://<forge-host>/<user>/<repo>  → fixture HTML
+ *   - content-script forge API call                     → mock forge API
+ *   - background SWH API call                           → mock SWH API
+ *
+ * All three proxy to the local mock server; tune response shape via
+ * mock.setScenario() before navigation.
+ */
+export function defaultRules(mockBase, { user = "u", repo = "r", forge = "github" } = {}) {
+    const page = `https://${hostFor(forge)}/${user}/${repo}`;
+    const api = apiFor(forge, user, repo);
+    return [
+        { urlPattern: `${page}*`, handler: async () => proxy(`${mockBase}/fixtures/${forge}/${user}/${repo}`) },
+        { urlPattern: `${api}*`,  handler: async () => proxy(`${mockBase}/forge/${forge}/repos/${user}/${repo}`) },
+        {
+            urlPattern: "https://archive.softwareheritage.org/api/1/origin/*",
+            handler: async (req) => {
+                const isSave = req.url.includes("/save/");
+                const mockPath = isSave ? "/swh/origin/save/" : "/swh/origin/visit/latest/";
+                return proxy(`${mockBase}${mockPath}`, { method: isSave ? "POST" : "GET" });
+            },
+        },
+    ];
+}
+
+function hostFor(forge) {
+    if (forge === "github") return "github.com";
+    throw new Error(`unknown forge ${forge}`);
+}
+
+function apiFor(forge, user, repo) {
+    if (forge === "github") return `https://api.github.com/repos/${user}/${repo}`;
+    throw new Error(`unknown forge ${forge}`);
+}
+
+async function proxy(url, init = {}) {
+    const r = await fetch(url, init);
+    return {
+        status: r.status,
+        contentType: r.headers.get("content-type"),
+        body: await r.text(),
+    };
+}
+
+/**
  * Wait for `.swh-save-button` to carry the given colour class.
  * On timeout, dumps the button's current state so failing scenarios don't
  * need their own diagnostic scaffolding.
