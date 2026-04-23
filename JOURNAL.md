@@ -256,3 +256,46 @@ permission). Real-browser testing — both manual and automated —
 must happen earlier in the cycle, not at the end. For
 WebExtension API work, the rule is: one commit → load in
 Firefox ESR → load in headless Chrome → next commit.
+
+---
+
+## 2026-04-23 — Hotfix 0.7.2 / 0.8.1: save-code-now broken by Anubis
+
+**What happened.** Reports came in that the shipped 0.7.0 showed grey on
+well-archived repos and red on save-click, on both Firefox and Chrome.
+Roberto traced it to a new Anubis bot-challenge proxy in front of
+`archive.softwareheritage.org`: unauthenticated API calls get served a
+200 + HTML JS-challenge page instead of the JSON they expect. Loading
+the archive once in the browser mints the cookie and the extension
+starts working again.
+
+**Root cause.** `extension/background.js::handleFetchSwhApi` called
+`response.json()` unconditionally on any `ok` response. On a challenge,
+that threw, the catch returned `{success:false, status:0}`, and the
+content script mapped status-0 via `statusToErrorType` to
+`NOT_ARCHIVED` (grey). Same path on save-click → red.
+
+**Fix shipped.** Three coupled changes, cut as v0.7.2 on `main` and
+picked up on `feature/runtime-host-permissions` (→ v0.8.1):
+1. `extension/background.js` checks `Content-Type` before parsing JSON
+   and surfaces a `kind: "challenge"` envelope when the body isn't JSON.
+   `sendResponse` is now wrapped in try/catch so a closed message port
+   (MV3 SW suspended mid-fetch) logs instead of throwing in the SW.
+2. `src/api/swh.js` wraps `runtime.sendMessage` with a 15 s timeout
+   (`sendMessageWithTimeout`) so the content-script `await` can never
+   hang forever on a dropped MV3 response — it recovers as a normal
+   error branch.
+3. New colour state `SWH_UNREACHABLE` (blue) with dedicated tooltip
+   and a click-through to `archive.softwareheritage.org`, so users can
+   refresh the Anubis cookie. Both the initial render and the
+   save-click failure path use it when `kind` is `challenge` or
+   `timeout`. Added 20 unit tests (`swhResponse.test.js`,
+   `swhApi.test.js`) covering every branch.
+
+**Lesson.** The zero-coverage save path let this regression ship silently.
+A pure `shapeSwhResponse(response)` module (mirrored inline in the
+non-module background script) is all it took to make the failure modes
+testable. For any silent-failure-sensitive handler, extract the pure
+shape function first and exercise it. Also: the real fix for an API
+behind a JS challenge is on the server side (exclude `/api/*` from
+Anubis) — the extension can only make the failure visible.

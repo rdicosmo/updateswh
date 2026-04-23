@@ -46,14 +46,24 @@ grant button is shown instead.
   `registerContentScript`, `unregisterContentScript`.
 - `src/api/forge.js` — direct `fetch` (forges allow CORS). Maps HTTP status to
   an errorType from `COLOR_CODES`.
-- `src/api/swh.js` — `chrome.runtime.sendMessage({type:"FETCH_SWH_API", ...})`;
+- `src/api/swh.js` — `sendMessageWithTimeout({type:"FETCH_SWH_API", ...})`;
   SWH does not serve CORS, so the request goes via the background script.
+  Timeout (15 s) guards against MV3 Chrome service-worker suspension
+  dropping the response. `kind: "challenge"` / `kind: "timeout"` envelopes
+  signal SWH-unreachable states.
+- `src/api/swhResponse.js` — pure `shapeSwhResponse(response)` helper that
+  converts a fetch Response to the `{success, data|error, status, kind?}`
+  envelope. Mirrored inline in `extension/background.js` (which is not an
+  ES module); `swhResponse.test.js` is the canonical coverage.
 - `src/content/ui.js` — fixed-position button appended to `<body>`, per-colour
   tooltip + click/right-click handlers, save-flow wrapping the button in an
   `<a>` on success. Also renders the dashed-outline grant button
   (`insertGrantButton`) when host permission is missing; clicking it
-  calls `chrome.permissions.request` from the user gesture.
-- `extension/background.js` — `FETCH_SWH_API` message handler, `createtab`,
+  calls `chrome.permissions.request` from the user gesture. Blue
+  `SWH_UNREACHABLE` state links to `archive.softwareheritage.org` so
+  users can refresh a bot-challenge cookie.
+- `extension/background.js` — `FETCH_SWH_API` message handler (checks
+  `Content-Type` to detect bot-challenge pages), `createtab`,
   `onInstalled` welcome page + options-page opener.  On startup,
   re-registers dynamic content scripts for custom forge domains.
 - `extension/options.js` — settings page. "Grant access to all built-in
@@ -66,8 +76,9 @@ grant button is shown instead.
 
 ```
 npm install
-npm test                # jest + jsdom; 67 tests across cache, navigation,
-                        #   forges, dateUtils, permissions, UI
+npm test                # jest + jsdom; 88 tests across cache, navigation,
+                        #   forges, dateUtils, permissions, UI,
+                        #   swhResponse, swhApi
 npm run build           # vite + manifest-generator
 make                    # build + zip for Firefox / Chrome / Edge
 ```
@@ -107,3 +118,10 @@ runtime rather than demanding `<all_urls>` at install.
   rejects URLs whose path starts with `/user/` or `/explore/` (profile and
   directory pages). A repository literally owned by user `user` would be
   misclassified; no known real-world case.
+- SWH deployed Anubis in front of `archive.softwareheritage.org`, which
+  returns a 200 + HTML JS-challenge page to unauthenticated API callers.
+  v0.7.2 (main) / v0.8.1 (this branch) detects that (non-JSON body on an
+  ok response) and surfaces a blue `SWH_UNREACHABLE` state with a
+  tooltip asking the user to visit the archive once. The real fix is
+  server-side: exclude `/api/*` from Anubis. See `JOURNAL.md`
+  2026-04-23.
