@@ -302,6 +302,52 @@ shape + tooltip represents "permission missing, click to grant".
   the forge-domain textareas (checkboxes/tokens can keep
   auto-save).
 
+## Per-forge sliders + import/export (feature follow-up, 2026-04-17)
+
+Builds on runtime-host-permissions. User feedback: the single
+"Grant all built-in forges" button is blunt; users want selective,
+per-origin control, and the gitlabs/giteas textareas are clumsy.
+
+### Goals
+
+- Per-forge toggle slider for every forge (built-in + custom) in one
+  unified list. Initial state mirrors `permissions.contains`
+  (granted→ON, missing→OFF). Click OFF→ON triggers `permissions.request`
+  within the gesture; deny reverts. Click ON→OFF triggers
+  `permissions.remove`. "Grant all built-in forges" bulk button stays.
+- Drop the `gitlabs` / `giteas` textareas. Custom forges can only be
+  added via the popup "add as GitLab/Gitea" flow; each appears as a
+  row with a slider + type badge + × delete button.
+- Import/Export forge whitelist (JSON). Import shows a pending list +
+  "Grant and import" button so the user gesture survives the async
+  `FileReader` read.
+
+### Storage migration — single canonical shape
+
+`customForges: [{domain: "framagit.org", type: "gitlab"}]`.
+
+One-shot idempotent migration (called from both background.js and
+options.js on load): if `customForges` exists, use it; else read
+legacy `gitlabs` + `giteas` text, parse, build the array, write
+`customForges`, delete legacy keys. This collapses the dual storage
+(textarea + `customForgeOrigins`) that produced earlier bugs.
+
+`customForgeOrigins` stays as a derived cache (set by options.js
+whenever `customForges` changes) so that background's content-script
+injector doesn't need to re-parse.
+
+### Phases
+
+- [ ] PFS-A. Storage migration + plumbing (options, background,
+      src/content/main.js).
+- [ ] PFS-B. Options UI: unified row list + Import/Export buttons;
+      drop textareas.
+- [ ] PFS-C. Slider + import/export behavior: per-row grant/revoke;
+      bulk import via "Grant and import" confirm button; JSON export
+      as a downloaded file.
+- [ ] PFS-D. Popup: write directly to `customForges`.
+- [ ] PFS-E. Tests + Firefox ESR smoke.
+
 ## Progress log
 
 _Append one line per meaningful change. Keep terse._
@@ -345,6 +391,14 @@ _Append one line per meaningful change. Keep terse._
   permissions; fixed in `77f077d` by restoring `<all_urls>` as
   required (runtime-grant UI is Future Work). Retest green across
   GitHub SPA nav, GitLab, Codeberg. **Next: Phase K (docs rewrite).**
+- 2026-04-17 — PFS-A through PFS-D implemented in one session
+  (uncommitted): storage migration to `customForges: [{domain, type}]`;
+  options page gains per-forge sliders + Import/Export buttons + custom
+  row delete; popup writes the new shape; background migrates on
+  startup; content script derives gitlabs/giteas at runtime from the
+  array. 72/72 unit tests pass (4 new in `customForges.test.js`); build
+  green at 23.53 KB. **Next (PFS-E): Firefox ESR + Chrome smoke; if
+  green, commit + journal entry.** No commits yet on this batch.
 
 ## Session handoff — 2026-04-14
 

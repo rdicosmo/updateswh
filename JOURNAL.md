@@ -259,6 +259,41 @@ Firefox ESR → load in headless Chrome → next commit.
 
 ---
 
+## 2026-04-17 — Per-forge sliders + import/export (UX refactor on same branch)
+
+**What happened.** Roberto recalled per-forge controls he expected to
+exist; we confirmed they never shipped (the options page only ever had
+read-only dots + a single bulk "Grant all" button). Roberto agreed to
+extend the runtime-host-permissions branch with a UX refactor rather
+than open a fresh branch — same logical work, single PR.
+
+**Decisions confirmed before coding (per the plan-before-code rule).**
+- Sliders for every forge (built-in + custom) in one unified list;
+  initial state mirrors actual permission, not forced-off.
+- Drop the `gitlabs` / `giteas` textareas; custom forges only added
+  via the popup "add as GitLab/Gitea" flow.
+- Storage collapses to `customForges: [{domain, type}]`; one-shot
+  idempotent migration from legacy text in both background and options.
+- Import/Export JSON whitelist; import shows a preview + "Grant and
+  import" button so the user gesture survives the async FileReader.
+- Keep "Grant all built-in forges" bulk button.
+
+**Implementation (one session).** options.html + options.js + popup.js +
+background.js + src/content/main.js + options.css. Added 4 unit tests
+for `customForgesByType`. 72/72 unit tests pass; build green at 23.53 KB.
+
+**Pending.** Manual Firefox ESR + Chrome smoke per the 8-step checklist
+in the conversation. No commits yet — Roberto verifies first.
+
+**Lesson.** The dual storage that caused earlier bugs
+(`9c634b3 Fix: diff custom forges against registered origins, not
+storage text`) is now collapsed to one source of truth; the migration
+is idempotent and runs from both background and options contexts. Not
+a "shared module" — duplicating ~15 lines across two non-bundled
+extension contexts beats fighting the build.
+
+---
+
 ## 2026-04-23 — Hotfix 0.7.2 / 0.8.1: save-code-now broken by Anubis
 
 **What happened.** Reports came in that the shipped 0.7.0 showed grey on
