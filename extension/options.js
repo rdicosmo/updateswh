@@ -152,26 +152,42 @@ function renderForgeList() {
             }));
         });
 
-        updateBulkButton(builtinOrigins);
+        updateBulkButton(builtinOrigins, customList);
     });
 }
 
-function updateBulkButton(builtinOrigins) {
+// Enable all: built-in forges + any custom forges the user has added
+// via the popup or import.  Lets users accept the default (all on) in
+// one click instead of flipping every slider individually.
+function allForgeOrigins(builtinOrigins, customList) {
+    var customOrigins = (customList || []).map(function (f) { return patternFromDomain(f.domain); });
+    var out = builtinOrigins.slice();
+    customOrigins.forEach(function (o) { if (out.indexOf(o) < 0) out.push(o); });
+    return out;
+}
+
+function updateBulkButton(builtinOrigins, customList) {
     var btn = document.getElementById('grant-all-btn');
     var status = document.getElementById('permissions-status');
+    var origins = allForgeOrigins(builtinOrigins, customList);
+    if (!origins.length) {
+        status.textContent = 'No forges configured.';
+        btn.disabled = true;
+        return;
+    }
     var checked = 0;
     var granted = 0;
-    builtinOrigins.forEach(function (origin) {
+    origins.forEach(function (origin) {
         browser.permissions.contains({ origins: [origin] }, function (has) {
             if (has) granted++;
             checked++;
-            if (checked === builtinOrigins.length) {
-                status.textContent = granted + ' / ' + builtinOrigins.length + ' built-in forges granted.';
-                if (granted === builtinOrigins.length) {
-                    btn.textContent = 'All built-in forges granted';
+            if (checked === origins.length) {
+                status.textContent = granted + ' / ' + origins.length + ' forges enabled.';
+                if (granted === origins.length) {
+                    btn.textContent = 'All forges enabled';
                     btn.disabled = true;
                 } else {
-                    btn.textContent = 'Grant access to all built-in forges';
+                    btn.textContent = 'Enable all forges';
                     btn.disabled = false;
                 }
             }
@@ -179,11 +195,15 @@ function updateBulkButton(builtinOrigins) {
     });
 }
 
-function grantAllBuiltins() {
-    var origins = getOptionalOrigins();
-    browser.permissions.request({ origins: origins }, function (granted) {
-        if (granted) flashStatus('Built-in forge permissions granted.');
-        renderForgeList();
+function enableAllForges() {
+    var builtinOrigins = getOptionalOrigins().filter(function (o) { return o !== '<all_urls>'; });
+    migrateCustomForges(function (customList) {
+        var origins = allForgeOrigins(builtinOrigins, customList);
+        if (!origins.length) { renderForgeList(); return; }
+        browser.permissions.request({ origins: origins }, function (granted) {
+            if (granted) flashStatus('All forge permissions granted.');
+            renderForgeList();
+        });
     });
 }
 
@@ -356,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('showrequest').addEventListener('click', save_options);
     document.getElementById('swhtoken').addEventListener('input', save_options);
     document.getElementById('ghtoken').addEventListener('input', save_options);
-    document.getElementById('grant-all-btn').addEventListener('click', grantAllBuiltins);
+    document.getElementById('grant-all-btn').addEventListener('click', enableAllForges);
     document.getElementById('import-btn').addEventListener('click', triggerImport);
     document.getElementById('export-btn').addEventListener('click', triggerExport);
     document.getElementById('import-file').addEventListener('change', handleImportFile);
