@@ -104,6 +104,11 @@
     "*://git.minetest.land/*",
     "*://repo.radio/*",
     "*://git.fsfe.org/*"
-  ]
+  ],
+  "browser_specific_settings_v2": {
+    "gecko": {
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  }
 }
 
