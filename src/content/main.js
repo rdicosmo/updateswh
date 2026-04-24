@@ -121,11 +121,14 @@ async function handle(url, forges, settings, getResults) {
 export function customForgesByType(settings) {
     // Prefer the canonical customForges array; fall back to legacy
     // gitlabs/giteas text if migration hasn't run yet in this context.
+    // Forgejo entries are routed through the Gitea handler — Forgejo
+    // is a Gitea fork that preserves the /api/v1/repos/<user>/<repo>
+    // API surface, so the same setup code works against either.
     const list = Array.isArray(settings.customForges) ? settings.customForges : null;
     if (list) {
         return {
             gitlabs: list.filter((f) => f.type === "gitlab").map((f) => f.domain).join("\n"),
-            giteas:  list.filter((f) => f.type === "gitea").map((f)  => f.domain).join("\n"),
+            giteas:  list.filter((f) => f.type === "gitea" || f.type === "forgejo").map((f) => f.domain).join("\n"),
         };
     }
     return { gitlabs: settings.gitlabs || "", giteas: settings.giteas || "" };

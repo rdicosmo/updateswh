@@ -49,6 +49,22 @@ function giteaInstanceSetup(projecturl) {
     };
 }
 
+// Pagure: https://pagure.io/<repo> (simple) or /<namespace>/<repo>
+// (namespaced). API returns `date_modified` as a unix-seconds string,
+// which we convert to an ISO timestamp so the existing date comparator
+// works unchanged.
+function pagureSetup(projecturl) {
+    const userproject = pathFrom(projecturl);
+    return {
+        userproject,
+        forgeapiurl: `https://pagure.io/api/0/${userproject}`,
+        lastupdate: (resp) => {
+            const secs = parseInt(resp.date_modified, 10);
+            return Number.isFinite(secs) ? new Date(secs * 1000).toISOString() : null;
+        },
+    };
+}
+
 const GITLAB_KNOWN_DOMAINS = ["0xacab.org", "gite.lirmm.fr", "framagit.org", "gricad-gitlab.univ-grenoble-alpes.fr"];
 const GITEA_KNOWN_DOMAINS  = ["git.rampin.org", "codeberg.org", "git.disroot.org", "git.minetest.land", "repo.radio", "git.fsfe.org"];
 
@@ -59,6 +75,7 @@ export const BUILTIN_FORGE_DOMAINS = Object.freeze([
     "github.com",
     "bitbucket.org",
     "gitlab.com",
+    "pagure.io",
     ...GITLAB_KNOWN_DOMAINS,
     ...GITEA_KNOWN_DOMAINS,
 ]);
@@ -105,6 +122,17 @@ export const DEFAULT_FORGES = Object.freeze([
         pattern: /^https?:\/\/(gitea\.[^./]+\.[^./]+)\/[^/]+\/[^/]+/,
         reject:  /^https?:\/\/(gitea\.[^./]+\.[^./]+)\/(user|explore)\//,
         setup: giteaInstanceSetup,
+    },
+    {
+        // Pagure supports both /<repo> and /<namespace>/<repo>; the
+        // pattern captures 1-or-2 path segments after the host.
+        // Reject meta-paths (/user/, /groups/, etc.) and common repo
+        // sub-paths (/<repo>/issues, /<repo>/pull-requests, …) so the
+        // button doesn't try the API on an invalid project path.
+        name: "Pagure",
+        pattern: /^https?:\/\/pagure\.io\/[^/]+(\/[^/]+)?/,
+        reject:  /^https?:\/\/pagure\.io\/(users?(\/|$)|groups?(\/|$)|admin(\/|$)|new(\/|$)|dashboard(\/|$)|login(\/|$)|logout(\/|$)|api(\/|$)|browse(\/|$)|api-swagger(\/|$)|documentation(\/|$)|about(\/|$)|search(\/|$)|static(\/|$)|[^/]+\/(issues|pull-requests|blob|commits|tree|settings|releases|forks|watchers|branches|tags|raw|stats|reports|docs)(\/|$|\?))/,
+        setup: pagureSetup,
     },
 ]);
 

@@ -40,4 +40,18 @@ describe("customForgesByType", () => {
         });
         expect(out).toEqual({ gitlabs: "", giteas: "" });
     });
+
+    test("forgejo entries route through the Gitea bucket", () => {
+        const out = customForgesByType({
+            customForges: [
+                { domain: "codeberg.org",      type: "gitea"   },
+                { domain: "forgejo.example.org", type: "forgejo" },
+                { domain: "other-forgejo.org", type: "forgejo" },
+            ],
+        });
+        expect(out.gitlabs).toBe("");
+        expect(out.giteas.split("\n").sort()).toEqual(
+            ["codeberg.org", "forgejo.example.org", "other-forgejo.org"].sort()
+        );
+    });
 });

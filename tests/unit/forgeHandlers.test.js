@@ -94,6 +94,53 @@ describe("forges — flat table", () => {
         });
     });
 
+    describe("Pagure", () => {
+        test("matches simple /<repo> URLs", () => {
+            const forge = findMatchingForge("https://pagure.io/pagure");
+            expect(forge).not.toBeNull();
+            expect(forge.name).toBe("Pagure");
+        });
+
+        test("matches namespaced /<namespace>/<repo> URLs", () => {
+            const forge = findMatchingForge("https://pagure.io/SSSD/sssd");
+            expect(forge).not.toBeNull();
+            expect(forge.name).toBe("Pagure");
+        });
+
+        test("rejects meta-paths and repo sub-paths", () => {
+            expect(findMatchingForge("https://pagure.io/user/foo")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/users")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/new")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/dashboard/")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/login")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/api/0/foo")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/pagure/issues")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/pagure/pull-requests")).toBeNull();
+            expect(findMatchingForge("https://pagure.io/pagure/settings")).toBeNull();
+        });
+
+        test("setup builds Pagure API url and converts unix-seconds to ISO", () => {
+            const forge = findMatchingForge("https://pagure.io/pagure");
+            const r = setupForge("https://pagure.io/pagure", forge);
+            expect(r.forgeapiurl).toBe("https://pagure.io/api/0/pagure");
+            // 1736760285 = 2025-01-13T09:24:45Z
+            const iso = r.lastupdate({ date_modified: 1736760285 });
+            expect(iso).toBe("2025-01-13T09:24:45.000Z");
+        });
+
+        test("setup returns null lastupdate when date_modified is missing", () => {
+            const forge = findMatchingForge("https://pagure.io/pagure");
+            const r = setupForge("https://pagure.io/pagure", forge);
+            expect(r.lastupdate({})).toBeNull();
+        });
+
+        test("setup supports namespaced repos in the API path", () => {
+            const forge = findMatchingForge("https://pagure.io/SSSD/sssd");
+            const r = setupForge("https://pagure.io/SSSD/sssd", forge);
+            expect(r.forgeapiurl).toBe("https://pagure.io/api/0/SSSD/sssd");
+        });
+    });
+
     describe("findMatchingForge", () => {
         test("finds GitHub", () => {
             expect(findMatchingForge("https://github.com/user/repo").name).toBe("GitHub");
@@ -139,6 +186,7 @@ describe("forges — flat table", () => {
             expect(BUILTIN_FORGE_DOMAINS).toContain("github.com");
             expect(BUILTIN_FORGE_DOMAINS).toContain("bitbucket.org");
             expect(BUILTIN_FORGE_DOMAINS).toContain("gitlab.com");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("pagure.io");
             expect(BUILTIN_FORGE_DOMAINS).toContain("codeberg.org");
         });
 

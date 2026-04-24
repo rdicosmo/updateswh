@@ -76,3 +76,19 @@ document.getElementById("addgitea").addEventListener("click",
         )
     }
 )
+
+document.getElementById("addforgejo").addEventListener("click",
+    function () {
+        // Forgejo is a Gitea fork that preserves the Gitea API surface,
+        // so it's handled by the same code path under the hood — we just
+        // label it "Forgejo" in the options page so users see what they
+        // actually use.
+        browser.tabs.query(
+            { 'active': true, 'lastFocusedWindow': true },
+            function (tabs) {
+                var url = new URL(tabs[0].url);
+                addForge(url.hostname, 'forgejo');
+            }
+        )
+    }
+)

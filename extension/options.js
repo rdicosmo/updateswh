@@ -4,11 +4,16 @@ if (typeof (chrome) !== "undefined") {
 
 /* ── Forge storage model ──
 
-   Canonical: customForges = [{domain, type}]  (type: "gitlab" | "gitea").
+   Canonical: customForges = [{domain, type}]
+              type: "gitlab" | "gitea" | "forgejo"
+              (forgejo uses the same API as gitea — the distinction is
+              cosmetic, but users see the right label in the options row)
    Derived:   customForgeOrigins = [pattern]   (cache for background injector).
 
    Legacy: gitlabs + giteas text blobs. One-shot migration on load.
 */
+
+var VALID_TYPES = { gitlab: 'GitLab', gitea: 'Gitea', forgejo: 'Forgejo' };
 
 function getOptionalOrigins() {
     var manifest = browser.runtime.getManifest();
@@ -142,7 +147,7 @@ function renderForgeList() {
             seen[entry.domain] = true;
             container.appendChild(buildRow({
                 domain: entry.domain,
-                typeLabel: entry.type === 'gitlab' ? 'GitLab' : 'Gitea',
+                typeLabel: VALID_TYPES[entry.type] || 'Gitea',
                 originPattern: patternFromDomain(entry.domain),
                 custom: true,
                 onDelete: function () {
@@ -241,7 +246,7 @@ function normalizeImport(data) {
     var out = [];
     if (Array.isArray(data && data.customForges)) {
         data.customForges.forEach(function (f) {
-            if (f && f.domain && (f.type === 'gitlab' || f.type === 'gitea')) {
+            if (f && f.domain && VALID_TYPES[f.type]) {
                 out.push({ domain: f.domain, type: f.type });
             }
         });
@@ -321,7 +326,7 @@ function buildExportPayload(list) {
     return {
         version: 1,
         _comment:
-            'Add entries under "customForges". Each entry is {"domain": "<host>", "type": "gitlab" | "gitea"}. ' +
+            'Add entries under "customForges". Each entry is {"domain": "<host>", "type": "gitlab" | "gitea" | "forgejo"}. ' +
             'The "_example" key below shows the expected shape and is ignored on import.',
         _example: [
             { domain: 'git.example.org',   type: 'gitlab' },
@@ -389,7 +394,7 @@ function addCustomForge(rawDomain, type) {
             var next = current.concat([{ domain: domain, type: type }]);
             writeCustomForges(next, function () {
                 document.getElementById('custom-forge-domain').value = '';
-                flashStatus('Added ' + domain + ' as ' + (type === 'gitlab' ? 'GitLab' : 'Gitea') + '.');
+                flashStatus('Added ' + domain + ' as ' + (VALID_TYPES[type] || 'Gitea') + '.');
                 renderForgeList();
             });
         });
@@ -399,8 +404,9 @@ function addCustomForge(rawDomain, type) {
 function wireAddCustom() {
     var input = document.getElementById('custom-forge-domain');
     function submit(type) { addCustomForge(input.value, type); }
-    document.getElementById('add-gitlab-btn').addEventListener('click', function () { submit('gitlab'); });
-    document.getElementById('add-gitea-btn').addEventListener('click',  function () { submit('gitea');  });
+    document.getElementById('add-gitlab-btn').addEventListener('click',  function () { submit('gitlab');  });
+    document.getElementById('add-gitea-btn').addEventListener('click',   function () { submit('gitea');   });
+    document.getElementById('add-forgejo-btn').addEventListener('click', function () { submit('forgejo'); });
     // Enter key defaults to GitLab (arbitrary but common choice); users who
     // want Gitea can click the button.
     input.addEventListener('keydown', function (e) {
