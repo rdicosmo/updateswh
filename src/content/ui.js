@@ -9,9 +9,8 @@ const SWH_SAVE_LIST_URL = "https://archive.softwareheritage.org/save/list/";
 const SWH_HOME_URL = "https://archive.softwareheritage.org/";
 const SWH_UNREACHABLE_TITLE =
     "Cannot reach the SWH API from the extension.\n" +
-    "The archive may be behind a bot-challenge page.\n" +
-    "Click to open archive.softwareheritage.org,\n" +
-    "then reload this page.";
+    "The archive may be temporarily unavailable or blocking the request.\n" +
+    "Click to open archive.softwareheritage.org to check.";
 // Build the save-icon SVG via DOM APIs instead of assigning a string to
 // innerHTML. Firefox's add-on linter flags every innerHTML assignment,
 // and even though the string here is a static constant (not user input)

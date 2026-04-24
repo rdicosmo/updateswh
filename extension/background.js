@@ -72,6 +72,14 @@ async function handleFetchSwhApi(data, sendResponse) {
     const opts = {
         method: data.method || "GET",
         headers: { ...defaultSwhHeaders(), ...(data.headers || {}) },
+        // Don't send cookies. If a user is logged into
+        // archive.softwareheritage.org in the same browser, the session
+        // cookie would be auto-included here, triggering swh-web's Django
+        // CSRF middleware and getting the request rejected. The extension
+        // never needs cookie-based auth — explicit `Authorization` headers
+        // (swhtoken) are preserved, they're not "credentials" in the
+        // fetch-spec sense.
+        credentials: "omit",
     };
     if (data.body) opts.body = data.body;
 
