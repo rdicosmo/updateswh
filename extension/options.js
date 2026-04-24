@@ -311,9 +311,29 @@ function commitImport() {
     });
 }
 
+function buildExportPayload(list) {
+    // Non-empty: plain payload; the file is self-describing because it
+    // literally contains the entries.
+    if (list.length) return { version: 1, customForges: list };
+    // Empty: scaffold the file with a _comment + _example so the user (or
+    // someone they share it with) can see the shape to fill in.  Both
+    // underscore keys are ignored by normalizeImport.
+    return {
+        version: 1,
+        _comment:
+            'Add entries under "customForges". Each entry is {"domain": "<host>", "type": "gitlab" | "gitea"}. ' +
+            'The "_example" key below shows the expected shape and is ignored on import.',
+        _example: [
+            { domain: 'git.example.org',   type: 'gitlab' },
+            { domain: 'forge.example.net', type: 'gitea' }
+        ],
+        customForges: []
+    };
+}
+
 function triggerExport() {
     migrateCustomForges(function (list) {
-        var payload = { version: 1, customForges: list };
+        var payload = buildExportPayload(list);
         var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -323,7 +343,68 @@ function triggerExport() {
         a.click();
         document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-        flashStatus('Exported ' + list.length + ' custom forge(s).');
+        flashStatus(list.length
+            ? 'Exported ' + list.length + ' custom forge(s).'
+            : 'Exported an empty whitelist with an example (no custom forges configured).');
+    });
+}
+
+/* ── Manual add of a custom forge ── */
+
+// Normalize user-typed domain: strip scheme, trailing slashes, whitespace.
+// Returns null if the result doesn't look like a hostname.
+function normalizeDomain(input) {
+    if (!input) return null;
+    var d = String(input).trim();
+    d = d.replace(/^https?:\/\//i, '');   // drop scheme
+    d = d.replace(/\/.*$/, '');           // drop any path
+    d = d.replace(/^\.+|\.+$/g, '');      // drop leading/trailing dots
+    if (!d) return null;
+    // Must contain at least one dot, no spaces, no illegal chars.
+    if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(d)) return null;
+    return d.toLowerCase();
+}
+
+function addCustomForge(rawDomain, type) {
+    var domain = normalizeDomain(rawDomain);
+    if (!domain) {
+        flashStatus('Please enter a valid domain (e.g. git.example.org).');
+        return;
+    }
+    migrateCustomForges(function (current) {
+        if (current.some(function (f) { return f.domain === domain; })) {
+            flashStatus(domain + ' is already in the list.');
+            return;
+        }
+        var origin = patternFromDomain(domain);
+        // Request permission *inside* the click gesture.  If the user
+        // denies, don't add the entry — the options page is already open,
+        // so there's no point in persisting an off-slider row the way the
+        // import flow does.
+        browser.permissions.request({ origins: [origin] }, function (granted) {
+            if (!granted) {
+                flashStatus('Permission denied for ' + domain + '.');
+                return;
+            }
+            var next = current.concat([{ domain: domain, type: type }]);
+            writeCustomForges(next, function () {
+                document.getElementById('custom-forge-domain').value = '';
+                flashStatus('Added ' + domain + ' as ' + (type === 'gitlab' ? 'GitLab' : 'Gitea') + '.');
+                renderForgeList();
+            });
+        });
+    });
+}
+
+function wireAddCustom() {
+    var input = document.getElementById('custom-forge-domain');
+    function submit(type) { addCustomForge(input.value, type); }
+    document.getElementById('add-gitlab-btn').addEventListener('click', function () { submit('gitlab'); });
+    document.getElementById('add-gitea-btn').addEventListener('click',  function () { submit('gitea');  });
+    // Enter key defaults to GitLab (arbitrary but common choice); users who
+    // want Gitea can click the button.
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submit('gitlab'); }
     });
 }
 
@@ -380,4 +461,5 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('import-btn').addEventListener('click', triggerImport);
     document.getElementById('export-btn').addEventListener('click', triggerExport);
     document.getElementById('import-file').addEventListener('change', handleImportFile);
+    wireAddCustom();
 });

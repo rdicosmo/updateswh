@@ -136,6 +136,30 @@ label.slider input:checked + .knob:before {
     transform: translateX(16px);
 }
 
+#add-custom {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+#add-custom input[type="text"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: 95%;
+    border: 1px solid #bbc;
+    border-radius: 4px;
+    background: #fff;
+}
+
+#add-custom button {
+    padding: 6px 12px;
+    font-size: 95%;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
 #import-export {
     margin-top: 12px;
     display: flex;
