@@ -49,6 +49,19 @@ function giteaInstanceSetup(projecturl) {
     };
 }
 
+// Gitee (gitee.com): GitHub-shaped URLs (/<owner>/<repo>), v5 REST API.
+// Anonymous access is rate-limited but fine for per-page use; the
+// response is same-origin from a content script running on gitee.com,
+// so no CORS gymnastics. `pushed_at` is already an ISO timestamp.
+function giteeSetup(projecturl) {
+    const userproject = pathFrom(projecturl);
+    return {
+        userproject,
+        forgeapiurl: `https://gitee.com/api/v5/repos/${userproject}`,
+        lastupdate: (resp) => resp.pushed_at,
+    };
+}
+
 // Pagure: https://pagure.io/<repo> (simple) or /<namespace>/<repo>
 // (namespaced). API returns `date_modified` as a unix-seconds string,
 // which we convert to an ISO timestamp so the existing date comparator
@@ -82,6 +95,7 @@ export const BUILTIN_FORGE_DOMAINS = Object.freeze([
     "github.com",
     "bitbucket.org",
     "gitlab.com",
+    "gitee.com",
     "pagure.io",
     ...GITLAB_KNOWN_DOMAINS,
     ...GITEA_KNOWN_DOMAINS,
@@ -97,6 +111,7 @@ export const BUILTIN_DOMAIN_TYPES = Object.freeze({
     "bitbucket.org":     "Bitbucket",
     "api.bitbucket.org": "Bitbucket",
     "gitlab.com":        "GitLab",
+    "gitee.com":         "Gitee",
     "pagure.io":         "Pagure",
     ...Object.fromEntries(GITLAB_KNOWN_DOMAINS.map(d => [d, "GitLab"])),
     ...Object.fromEntries(GITEA_KNOWN_DOMAINS.map(d => [d, "Gitea"])),
@@ -121,6 +136,12 @@ export const DEFAULT_FORGES = Object.freeze([
         pattern: /^https?:\/\/gitlab\.com\/[^/]+\/[^/]+(\/[^-][^/]+)*/,
         reject:  /^https?:\/\/gitlab\.com\/explore\//,
         setup: gitlabDotComSetup,
+    },
+    {
+        name: "Gitee",
+        pattern: /^https?:\/\/gitee\.com\/[^/]+\/[^/]+/,
+        reject:  /^https?:\/\/gitee\.com\/(explore|login|logout|signup|signin|api|organizations|users|notifications|dashboard|help|about|profile|settings|oauth|features|enterprises|gitee-pages)(\/|$|\?)/,
+        setup: giteeSetup,
     },
     {
         name: "GitLab instance",

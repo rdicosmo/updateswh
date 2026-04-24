@@ -24,6 +24,7 @@ var BUILTIN_DOMAIN_TYPES = {
     'bitbucket.org':     'Bitbucket',
     'api.bitbucket.org': 'Bitbucket',
     'gitlab.com':        'GitLab',
+    'gitee.com':         'Gitee',
     'pagure.io':         'Pagure',
     '0xacab.org':                          'GitLab',
     'gite.lirmm.fr':                       'GitLab',

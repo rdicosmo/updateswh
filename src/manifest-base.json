@@ -1,6 +1,6 @@
 {
   "name": "UpdateSWH",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Check archival state of a source code repository and propose to update it if needed.",
   "icons": {
     "16": "img/icon-16.png",
@@ -44,6 +44,7 @@
         "*://github.com/*",
         "*://bitbucket.org/*",
         "*://gitlab.com/*",
+        "*://gitee.com/*",
         "*://pagure.io/*",
         "*://0xacab.org/*",
         "*://gite.lirmm.fr/*",
@@ -95,6 +96,7 @@
     "*://bitbucket.org/*",
     "*://api.bitbucket.org/*",
     "*://gitlab.com/*",
+    "*://gitee.com/*",
     "*://pagure.io/*",
     "*://0xacab.org/*",
     "*://gite.lirmm.fr/*",

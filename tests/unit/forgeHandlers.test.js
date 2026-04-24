@@ -94,6 +94,41 @@ describe("forges — flat table", () => {
         });
     });
 
+    describe("Gitee", () => {
+        test("matches gitee.com/<owner>/<repo>", () => {
+            const forge = findMatchingForge("https://gitee.com/mirrors/spring-boot");
+            expect(forge).not.toBeNull();
+            expect(forge.name).toBe("Gitee");
+        });
+
+        test("rejects meta-paths", () => {
+            expect(findMatchingForge("https://gitee.com/explore")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/login")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/signup")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/api/v5/repos/foo/bar")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/organizations")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/notifications")).toBeNull();
+            expect(findMatchingForge("https://gitee.com/settings")).toBeNull();
+        });
+
+        test("matches sub-paths but pattern captures only the repo prefix", () => {
+            const forge = findMatchingForge("https://gitee.com/mirrors/spring-boot/issues");
+            expect(forge).not.toBeNull();
+            expect(forge.name).toBe("Gitee");
+            const r = setupForge("https://gitee.com/mirrors/spring-boot/issues", forge);
+            expect(r.projecturl).toBe("https://gitee.com/mirrors/spring-boot");
+            expect(r.forgeapiurl).toBe("https://gitee.com/api/v5/repos/mirrors/spring-boot");
+        });
+
+        test("setup builds Gitee API url and returns pushed_at as-is", () => {
+            const forge = findMatchingForge("https://gitee.com/mirrors/spring-boot");
+            const r = setupForge("https://gitee.com/mirrors/spring-boot", forge);
+            expect(r.forgeapiurl).toBe("https://gitee.com/api/v5/repos/mirrors/spring-boot");
+            expect(r.lastupdate({ pushed_at: "2026-04-25T00:02:20+08:00" }))
+                .toBe("2026-04-25T00:02:20+08:00");
+        });
+    });
+
     describe("Pagure", () => {
         test("matches simple /<repo> URLs", () => {
             const forge = findMatchingForge("https://pagure.io/pagure");
@@ -186,6 +221,7 @@ describe("forges — flat table", () => {
             expect(BUILTIN_FORGE_DOMAINS).toContain("github.com");
             expect(BUILTIN_FORGE_DOMAINS).toContain("bitbucket.org");
             expect(BUILTIN_FORGE_DOMAINS).toContain("gitlab.com");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("gitee.com");
             expect(BUILTIN_FORGE_DOMAINS).toContain("pagure.io");
             expect(BUILTIN_FORGE_DOMAINS).toContain("codeberg.org");
             expect(BUILTIN_FORGE_DOMAINS).toContain("git.disroot.org");
