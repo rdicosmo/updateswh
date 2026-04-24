@@ -6,7 +6,11 @@ export const COLOR_CODES = {
     NOT_ARCHIVED: "grey",
     FORGE_API_ERROR: "red",
     SWH_UNREACHABLE: "blue",
+    PENDING_VISIT: "lightgreen",
 };
+
+/** SWH visit.status values that mean "a visit is in flight right now". */
+export const PENDING_VISIT_STATUSES = new Set(["created", "ongoing"]);
 
 export const SWH_FETCH_TIMEOUT_MS = 15_000;
 

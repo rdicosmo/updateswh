@@ -199,6 +199,15 @@ export function insertSaveIcon(results, settings = {}) {
         return;
     }
 
+    if (color === COLOR_CODES.PENDING_VISIT) {
+        btn.setAttribute(
+            "title",
+            `Archival in progress.\nLatest visit recorded on ${swhDay || "(unknown)"}.\nCheck back in a few minutes.\nClick to open the save queue.`,
+        );
+        wrapInAnchor(btn, SWH_SAVE_LIST_URL);
+        return;
+    }
+
     if (color === COLOR_CODES.OUT_OF_DATE) {
         btn.setAttribute(
             "title",

@@ -1,4 +1,4 @@
-import { COLOR_CODES, CACHE_TTL_MS } from "../constants.js";
+import { COLOR_CODES, CACHE_TTL_MS, PENDING_VISIT_STATUSES } from "../constants.js";
 import { buildForges, findMatchingForge, setupForge } from "../forges.js";
 import { fetchForgeApi, githubAuthHeaders } from "../api/forge.js";
 import { fetchSwhLatestVisit } from "../api/swh.js";
@@ -67,7 +67,11 @@ async function computeResults(url, forges, settings) {
     }
     results.swhlastupdate = swhResult.data.date;
 
-    if (swhResult.data.status !== "full") {
+    if (PENDING_VISIT_STATUSES.has(swhResult.data.status)) {
+        // A visit is currently in flight (just scheduled / being fetched).
+        // Don't mark it as failed — the outcome isn't known yet.
+        results.color = COLOR_CODES.PENDING_VISIT;
+    } else if (swhResult.data.status !== "full") {
         results.color = COLOR_CODES.FAILED_UPDATE;
     } else if (isArchiveUpToDate(results.forgelastupdate, results.swhlastupdate)) {
         results.color = COLOR_CODES.UP_TO_DATE;

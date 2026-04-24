@@ -88,3 +88,24 @@ describe("grant button", () => {
         expect(document.querySelector(".swh-grant-button")).toBeNull();
     });
 });
+
+describe("save icon — PENDING_VISIT state", () => {
+    test("renders lightgreen, tooltip mentions in-progress, links to save queue", () => {
+        ui.insertSaveIcon({
+            color: "lightgreen",
+            projecturl: "https://github.com/u/r",
+            forgelastupdate: "2026-04-24T00:00:00Z",
+            swhlastupdate:   "2026-04-24T12:00:00+00:00",
+        });
+        const btn = document.querySelector(".swh-save-button");
+        expect(btn).not.toBeNull();
+        expect(btn.classList.contains("lightgreen")).toBe(true);
+        expect(btn.getAttribute("title")).toMatch(/archival in progress/i);
+        expect(btn.getAttribute("title")).toMatch(/2026-04-24/);
+        // Wrapped in an <a> pointing at the save queue.
+        expect(btn.parentElement?.tagName).toBe("A");
+        expect(btn.parentElement.getAttribute("href")).toBe(
+            "https://archive.softwareheritage.org/save/list/",
+        );
+    });
+});

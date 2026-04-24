@@ -77,7 +77,7 @@ describe("E2E archival states", () => {
         expect(await tooltip()).toMatch(/not current/i);
     });
 
-    test("brown: last archival attempt failed (visit.status !== 'full')", async () => {
+    test("brown: last archival attempt failed (visit.status === 'failed')", async () => {
         await navigate({
             forge: { status: 200, body: { pushed_at: FORGE_PUSHED_AT } },
             swhVisit: { status: 200, body: visit({ status: "failed" }) },
@@ -85,6 +85,18 @@ describe("E2E archival states", () => {
         await waitForButtonColor(ctx.page, "brown");
         expect(await tooltip()).toMatch(/failed/i);
     });
+
+    test.each(["created", "ongoing"])(
+        "lightgreen: visit in flight (visit.status === '%s')",
+        async (swhStatus) => {
+            await navigate({
+                forge: { status: 200, body: { pushed_at: FORGE_PUSHED_AT } },
+                swhVisit: { status: 200, body: visit({ status: swhStatus }) },
+            });
+            await waitForButtonColor(ctx.page, "lightgreen");
+            expect(await tooltip()).toMatch(/archival in progress/i);
+        },
+    );
 
     test("grey: origin not archived (SWH 404)", async () => {
         await navigate({
