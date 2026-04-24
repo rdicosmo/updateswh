@@ -12,6 +12,10 @@ function handleFetchSwhApi(data, sendResponse) {
     const opts = {
         method: data.method || "GET",
         headers: data.headers || {},
+        // ensure to not send any credentials through cookies as if a user is
+        // currently logged in to the SWH webapp, this will trigger CSRF check
+        // server side and the request will be rejected
+        credentials: "omit",
     };
     if (data.body) opts.body = data.body;
 
