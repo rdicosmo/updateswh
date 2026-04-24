@@ -12,3 +12,4 @@ extension/manifest.json
 extension/manifest-v3.json
 .#*
 *~
+extension-firefox-build/
