@@ -294,7 +294,7 @@ extension contexts beats fighting the build.
 
 ---
 
-## 2026-04-23 — Hotfix 0.7.2 / 0.8.1: save-code-now broken by Anubis
+## 2026-04-23 — Save-code-now broken by Anubis (→ v0.9.0)
 
 **What happened.** Reports came in that the shipped 0.7.0 showed grey on
 well-archived repos and red on save-click, on both Firefox and Chrome.
@@ -310,8 +310,8 @@ that threw, the catch returned `{success:false, status:0}`, and the
 content script mapped status-0 via `statusToErrorType` to
 `NOT_ARCHIVED` (grey). Same path on save-click → red.
 
-**Fix shipped.** Three coupled changes, cut as v0.7.2 on `main` and
-picked up on `feature/runtime-host-permissions` (→ v0.8.1):
+**Fix shipped.** Three coupled changes bundled into v0.9.0 alongside
+the runtime-permission and per-forge-slider work:
 1. `extension/background.js` checks `Content-Type` before parsing JSON
    and surfaces a `kind: "challenge"` envelope when the body isn't JSON.
    `sendResponse` is now wrapped in try/catch so a closed message port

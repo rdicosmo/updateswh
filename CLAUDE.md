@@ -120,7 +120,7 @@ runtime rather than demanding `<all_urls>` at install.
   misclassified; no known real-world case.
 - SWH deployed Anubis in front of `archive.softwareheritage.org`, which
   returns a 200 + HTML JS-challenge page to unauthenticated API callers.
-  v0.7.2 (main) / v0.8.1 (this branch) detects that (non-JSON body on an
+  v0.9.0 detects that (non-JSON body on an
   ok response) and surfaces a blue `SWH_UNREACHABLE` state with a
   tooltip asking the user to visit the archive once. The real fix is
   server-side: exclude `/api/*` from Anubis. See `JOURNAL.md`
