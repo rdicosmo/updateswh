@@ -74,11 +74,11 @@ describe("forges — flat table", () => {
         });
     });
 
-    describe("Gitea (codeberg.org as known instance)", () => {
+    describe("Forgejo (codeberg.org as known instance)", () => {
         test("matches codeberg via known-list row", () => {
             const forge = findMatchingForge("https://codeberg.org/alice/repo");
             expect(forge).not.toBeNull();
-            expect(forge.name).toBe("Gitea instance");
+            expect(forge.name).toBe("Forgejo instance");
         });
 
         test("rejects non-repository codeberg URLs", () => {
@@ -87,7 +87,7 @@ describe("forges — flat table", () => {
             expect(findMatchingForge("https://codeberg.org/user/foo")).toBeNull();
         });
 
-        test("setup builds codeberg API url", () => {
+        test("setup builds codeberg API url (Forgejo preserves Gitea /api/v1)", () => {
             const forge = findMatchingForge("https://codeberg.org/alice/repo");
             const r = setupForge("https://codeberg.org/alice/repo", forge);
             expect(r.forgeapiurl).toBe("https://codeberg.org/api/v1/repos/alice/repo");
@@ -188,6 +188,23 @@ describe("forges — flat table", () => {
             expect(BUILTIN_FORGE_DOMAINS).toContain("gitlab.com");
             expect(BUILTIN_FORGE_DOMAINS).toContain("pagure.io");
             expect(BUILTIN_FORGE_DOMAINS).toContain("codeberg.org");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("git.disroot.org");
+            expect(BUILTIN_FORGE_DOMAINS).toContain("git.fsfe.org");
+        });
+
+        test("codeberg / disroot / minetest.land resolve to the Forgejo instance row", () => {
+            // Verified against /api/v1/version: these hosts advertise the
+            // Forgejo "+gitea-X.Y.Z" compat suffix.
+            expect(findMatchingForge("https://codeberg.org/alice/repo").name).toBe("Forgejo instance");
+            expect(findMatchingForge("https://git.disroot.org/alice/repo").name).toBe("Forgejo instance");
+            expect(findMatchingForge("https://git.minetest.land/alice/repo").name).toBe("Forgejo instance");
+        });
+
+        test("remaining known Gitea domains still resolve to the Gitea row", () => {
+            // /api/v1/version returns bare 1.x.x (no Forgejo compat suffix).
+            expect(findMatchingForge("https://git.rampin.org/alice/repo").name).toBe("Gitea instance");
+            expect(findMatchingForge("https://repo.radio/alice/repo").name).toBe("Gitea instance");
+            expect(findMatchingForge("https://git.fsfe.org/alice/repo").name).toBe("Gitea instance");
         });
 
         test("every domain matches at least one DEFAULT_FORGES entry", () => {

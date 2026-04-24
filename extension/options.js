@@ -15,6 +15,28 @@ if (typeof (chrome) !== "undefined") {
 
 var VALID_TYPES = { gitlab: 'GitLab', gitea: 'Gitea', forgejo: 'Forgejo' };
 
+// Built-in forge domain → friendly type label for the row badge.
+// Keep in sync with BUILTIN_DOMAIN_TYPES in src/forges.js (options.js is
+// a non-bundled extension page and cannot import the source module).
+var BUILTIN_DOMAIN_TYPES = {
+    'github.com':        'GitHub',
+    'api.github.com':    'GitHub',
+    'bitbucket.org':     'Bitbucket',
+    'api.bitbucket.org': 'Bitbucket',
+    'gitlab.com':        'GitLab',
+    'pagure.io':         'Pagure',
+    '0xacab.org':                          'GitLab',
+    'gite.lirmm.fr':                       'GitLab',
+    'framagit.org':                        'GitLab',
+    'gricad-gitlab.univ-grenoble-alpes.fr':'GitLab',
+    'git.rampin.org':                      'Gitea',
+    'repo.radio':                          'Gitea',
+    'git.fsfe.org':                        'Gitea',
+    'codeberg.org':                        'Forgejo',
+    'git.disroot.org':                     'Forgejo',
+    'git.minetest.land':                   'Forgejo',
+};
+
 function getOptionalOrigins() {
     var manifest = browser.runtime.getManifest();
     return manifest.optional_host_permissions || manifest.optional_permissions || [];
@@ -130,9 +152,10 @@ function renderForgeList() {
 
     var builtinOrigins = getOptionalOrigins().filter(function (o) { return o !== '<all_urls>'; });
     builtinOrigins.forEach(function (origin) {
+        var domain = domainFromPattern(origin);
         container.appendChild(buildRow({
-            domain: domainFromPattern(origin),
-            typeLabel: 'built-in',
+            domain: domain,
+            typeLabel: BUILTIN_DOMAIN_TYPES[domain] || 'built-in',
             originPattern: origin,
             custom: false
         }));

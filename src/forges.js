@@ -65,11 +65,18 @@ function pagureSetup(projecturl) {
     };
 }
 
-const GITLAB_KNOWN_DOMAINS = ["0xacab.org", "gite.lirmm.fr", "framagit.org", "gricad-gitlab.univ-grenoble-alpes.fr"];
-const GITEA_KNOWN_DOMAINS  = ["git.rampin.org", "codeberg.org", "git.disroot.org", "git.minetest.land", "repo.radio", "git.fsfe.org"];
+const GITLAB_KNOWN_DOMAINS  = ["0xacab.org", "gite.lirmm.fr", "framagit.org", "gricad-gitlab.univ-grenoble-alpes.fr"];
+const GITEA_KNOWN_DOMAINS   = ["git.rampin.org", "repo.radio", "git.fsfe.org"];
+// Forgejo preserves the Gitea /api/v1 surface, so the giteaInstanceSetup
+// handler works against these unchanged — but they show up as "Forgejo"
+// in the UI so users see what they actually use. Classification verified
+// against each host's /api/v1/version string (Forgejo advertises a
+// "+gitea-X.Y.Z" compat suffix; bare 1.x versions are Gitea).
+const FORGEJO_KNOWN_DOMAINS = ["codeberg.org", "git.disroot.org", "git.minetest.land"];
 
-const GITLAB_KNOWN = GITLAB_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
-const GITEA_KNOWN  = GITEA_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
+const GITLAB_KNOWN  = GITLAB_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
+const GITEA_KNOWN   = GITEA_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
+const FORGEJO_KNOWN = FORGEJO_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
 
 export const BUILTIN_FORGE_DOMAINS = Object.freeze([
     "github.com",
@@ -78,7 +85,23 @@ export const BUILTIN_FORGE_DOMAINS = Object.freeze([
     "pagure.io",
     ...GITLAB_KNOWN_DOMAINS,
     ...GITEA_KNOWN_DOMAINS,
+    ...FORGEJO_KNOWN_DOMAINS,
 ]);
+
+// Domain → friendly type label, used by the options page to render
+// the badge on each built-in forge row. Anything not in this map falls
+// back to "built-in".
+export const BUILTIN_DOMAIN_TYPES = Object.freeze({
+    "github.com":        "GitHub",
+    "api.github.com":    "GitHub",
+    "bitbucket.org":     "Bitbucket",
+    "api.bitbucket.org": "Bitbucket",
+    "gitlab.com":        "GitLab",
+    "pagure.io":         "Pagure",
+    ...Object.fromEntries(GITLAB_KNOWN_DOMAINS.map(d => [d, "GitLab"])),
+    ...Object.fromEntries(GITEA_KNOWN_DOMAINS.map(d => [d, "Gitea"])),
+    ...Object.fromEntries(FORGEJO_KNOWN_DOMAINS.map(d => [d, "Forgejo"])),
+});
 
 export const DEFAULT_FORGES = Object.freeze([
     {
@@ -121,6 +144,15 @@ export const DEFAULT_FORGES = Object.freeze([
         name: "Gitea instance",
         pattern: /^https?:\/\/(gitea\.[^./]+\.[^./]+)\/[^/]+\/[^/]+/,
         reject:  /^https?:\/\/(gitea\.[^./]+\.[^./]+)\/(user|explore)\//,
+        setup: giteaInstanceSetup,
+    },
+    {
+        // Forgejo shares Gitea's /api/v1 surface, so the setup is the
+        // same — the distinct record just carries the correct name for
+        // tooltips and logs.
+        name: "Forgejo instance",
+        pattern: new RegExp(`^https?:\\/\\/(${FORGEJO_KNOWN})\\/[^/]+\\/[^/]+`),
+        reject:  new RegExp(`^https?:\\/\\/(${FORGEJO_KNOWN})\\/(user|explore)\\/`),
         setup: giteaInstanceSetup,
     },
     {
