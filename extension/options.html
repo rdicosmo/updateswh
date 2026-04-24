@@ -11,6 +11,17 @@
     <label>Forge permissions</label>
     <p id="permissions-status">Checking...</p>
     <button id="grant-all-btn" type="button">Grant access to all built-in forges</button>
+    <div id="forge-list"></div>
+    <div id="import-export">
+        <button id="import-btn" type="button">Import forge whitelist</button>
+        <button id="export-btn" type="button">Export forge whitelist</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </div>
+    <div id="import-preview"></div>
+    <p class="hint">
+        Custom forges can be added from the extension popup on any repository
+        page ("This is a GitLab/Gitea instance").
+    </p>
 </div>
 
 <div class="option">
@@ -21,7 +32,7 @@
     <p>
         When a save request is issued, open a tab to show its status.
     </p>
-    
+
     <label>
         <input type="checkbox" id="swh-debug">
         SWH Debug Mode
@@ -29,7 +40,7 @@
     <p>
         Enable console log of the SWH extension actions.
     </p>
-    
+
     <label>
         GitHub API access token
     </label>
@@ -39,7 +50,7 @@
     <p>
         Add a GitHub access token to increase its rate limit.
     </p>
-    
+
     <label>
         SWH API access token
     </label>
@@ -49,28 +60,6 @@
     <p>
         Add your SWH API token to increase SWH rate limit.
     </p>
-
-    <label>
-        Additional GitLab instances
-    </label>
-    <textarea id="gitlabs" rows="6" cols="50">
-    </textarea>
-
-    <p>
-        Add only the domain name(s) one per line (e.g. framagit.org)
-    </p>
-
-    <label>
-        Additional Gitea instances
-    </label>
-    <textarea id="giteas" rows="6" cols="50">
-    </textarea>
-
-    <p>
-        Add only the domain name(s) one per line (e.g. try.gitea.io)
-    </p>
-
-    <button id="save-forges-btn" type="button">Save custom forge domains</button>
 
 </div>
 

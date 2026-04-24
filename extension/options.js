@@ -2,7 +2,13 @@ if (typeof (chrome) !== "undefined") {
     browser = chrome
 }
 
-/* ── Forge permissions ── */
+/* ── Forge storage model ──
+
+   Canonical: customForges = [{domain, type}]  (type: "gitlab" | "gitea").
+   Derived:   customForgeOrigins = [pattern]   (cache for background injector).
+
+   Legacy: gitlabs + giteas text blobs. One-shot migration on load.
+*/
 
 function getOptionalOrigins() {
     var manifest = browser.runtime.getManifest();
@@ -22,289 +28,336 @@ function parseDomainList(text) {
     return (text || '').split(/[\s,\n\r]+/).filter(Boolean);
 }
 
-function refreshPermissionsUI() {
-    var origins = getOptionalOrigins().filter(function (o) { return o !== '<all_urls>'; });
-    if (!origins.length) return;
+function migrateCustomForges(cb) {
+    browser.storage.local.get({
+        customForges: null,
+        gitlabs: '',
+        giteas: ''
+    }, function (items) {
+        if (Array.isArray(items.customForges)) { cb(items.customForges); return; }
+        var list = [];
+        parseDomainList(items.gitlabs).forEach(function (d) { list.push({ domain: d, type: 'gitlab' }); });
+        parseDomainList(items.giteas).forEach(function (d) { list.push({ domain: d, type: 'gitea'  }); });
+        browser.storage.local.set({
+            customForges: list,
+            customForgeOrigins: list.map(function (f) { return patternFromDomain(f.domain); })
+        }, function () {
+            browser.storage.local.remove(['gitlabs', 'giteas'], function () { cb(list); });
+        });
+    });
+}
 
-    // Use permissions.contains per origin rather than getAll() because
-    // Firefox normalizes *:// patterns into separate http/https entries,
-    // breaking direct string comparison.
-    var statusEl = document.getElementById('permissions-status');
-    var btn = document.getElementById('grant-all-btn');
-    var container = document.getElementById('origin-list');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'origin-list';
-        statusEl.parentNode.insertBefore(container, btn);
+function writeCustomForges(list, cb) {
+    browser.storage.local.set({
+        customForges: list,
+        customForgeOrigins: list.map(function (f) { return patternFromDomain(f.domain); })
+    }, cb || function () {});
+}
+
+/* ── Row rendering ── */
+
+function buildSlider(originPattern, onToggle) {
+    var label = document.createElement('label');
+    label.className = 'slider';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    var knob = document.createElement('span');
+    knob.className = 'knob';
+    label.appendChild(cb);
+    label.appendChild(knob);
+
+    browser.permissions.contains({ origins: [originPattern] }, function (has) {
+        cb.checked = !!has;
+    });
+
+    cb.addEventListener('change', function () {
+        if (cb.checked) {
+            browser.permissions.request({ origins: [originPattern] }, function (granted) {
+                cb.checked = !!granted;
+                if (onToggle) onToggle(!!granted);
+            });
+        } else {
+            browser.permissions.remove({ origins: [originPattern] }, function () {
+                if (onToggle) onToggle(false);
+            });
+        }
+    });
+
+    return label;
+}
+
+function buildRow({ domain, typeLabel, originPattern, custom, onDelete }) {
+    var row = document.createElement('div');
+    row.className = 'forge-row';
+
+    row.appendChild(buildSlider(originPattern));
+
+    var domainEl = document.createElement('span');
+    domainEl.className = 'forge-domain';
+    domainEl.textContent = domain;
+    row.appendChild(domainEl);
+
+    var badge = document.createElement('span');
+    badge.className = 'forge-badge ' + (custom ? 'custom' : 'builtin');
+    badge.textContent = typeLabel;
+    row.appendChild(badge);
+
+    if (custom) {
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'forge-delete';
+        del.title = 'Remove this custom forge';
+        del.textContent = '×';
+        del.addEventListener('click', function () {
+            browser.permissions.remove({ origins: [originPattern] }, function () {
+                if (onDelete) onDelete();
+            });
+        });
+        row.appendChild(del);
     }
+
+    return row;
+}
+
+function renderForgeList() {
+    var container = document.getElementById('forge-list');
     container.innerHTML = '';
 
-    var grantedCount = 0;
-    var checkedCount = 0;
+    var builtinOrigins = getOptionalOrigins().filter(function (o) { return o !== '<all_urls>'; });
+    builtinOrigins.forEach(function (origin) {
+        container.appendChild(buildRow({
+            domain: domainFromPattern(origin),
+            typeLabel: 'built-in',
+            originPattern: origin,
+            custom: false
+        }));
+    });
 
-    function updateSummary() {
-        statusEl.textContent = grantedCount + ' / ' + origins.length + ' forge origins granted.';
-        if (grantedCount === origins.length) {
-            btn.textContent = 'All built-in forges granted';
-            btn.disabled = true;
-        } else {
-            btn.textContent = 'Grant access to all built-in forges';
-            btn.disabled = false;
-        }
-    }
+    migrateCustomForges(function (customList) {
+        var seen = {};
+        builtinOrigins.forEach(function (o) { seen[domainFromPattern(o)] = true; });
 
-    origins.forEach(function (origin) {
+        customList.forEach(function (entry, index) {
+            if (seen[entry.domain]) return; // skip duplicates of built-ins
+            seen[entry.domain] = true;
+            container.appendChild(buildRow({
+                domain: entry.domain,
+                typeLabel: entry.type === 'gitlab' ? 'GitLab' : 'Gitea',
+                originPattern: patternFromDomain(entry.domain),
+                custom: true,
+                onDelete: function () {
+                    var next = customList.filter(function (f) { return f.domain !== entry.domain; });
+                    writeCustomForges(next, renderForgeList);
+                }
+            }));
+        });
+
+        updateBulkButton(builtinOrigins);
+    });
+}
+
+function updateBulkButton(builtinOrigins) {
+    var btn = document.getElementById('grant-all-btn');
+    var status = document.getElementById('permissions-status');
+    var checked = 0;
+    var granted = 0;
+    builtinOrigins.forEach(function (origin) {
         browser.permissions.contains({ origins: [origin] }, function (has) {
-            if (has) grantedCount++;
-            checkedCount++;
-            var row = document.createElement('div');
-            row.className = 'forge-origin-row';
-            var dot = document.createElement('span');
-            dot.className = 'dot ' + (has ? 'granted' : 'missing');
-            var label = document.createElement('span');
-            label.textContent = domainFromPattern(origin);
-            row.appendChild(dot);
-            row.appendChild(label);
-            container.appendChild(row);
-            if (checkedCount === origins.length) {
-                updateSummary();
-                // Append custom forge rows after built-ins
-                appendCustomRows(container);
+            if (has) granted++;
+            checked++;
+            if (checked === builtinOrigins.length) {
+                status.textContent = granted + ' / ' + builtinOrigins.length + ' built-in forges granted.';
+                if (granted === builtinOrigins.length) {
+                    btn.textContent = 'All built-in forges granted';
+                    btn.disabled = true;
+                } else {
+                    btn.textContent = 'Grant access to all built-in forges';
+                    btn.disabled = false;
+                }
             }
         });
     });
-
-    function appendCustomRows(container) {
-        // Build a set of built-in origins to avoid duplicates
-        var builtinSet = {};
-        origins.forEach(function (o) { builtinSet[o] = true; });
-
-        browser.storage.local.get({ customForgeOrigins: [] }, function (items) {
-            var custom = items.customForgeOrigins || [];
-            custom.forEach(function (origin) {
-                if (builtinSet[origin]) return; // skip built-in duplicates
-                browser.permissions.contains({ origins: [origin] }, function (has) {
-                    var row = document.createElement('div');
-                    row.className = 'forge-origin-row';
-                    var dot = document.createElement('span');
-                    dot.className = 'dot ' + (has ? 'granted' : 'missing');
-                    var label = document.createElement('span');
-                    label.textContent = domainFromPattern(origin) + ' (custom)';
-                    row.appendChild(dot);
-                    row.appendChild(label);
-                    container.appendChild(row);
-                });
-            });
-        });
-    }
 }
 
 function grantAllBuiltins() {
     var origins = getOptionalOrigins();
     browser.permissions.request({ origins: origins }, function (granted) {
-        if (granted) {
-            var status = document.getElementById('status');
-            status.textContent = 'Forge permissions granted.';
-            setTimeout(function () { status.textContent = ''; }, 2000);
+        if (granted) flashStatus('Built-in forge permissions granted.');
+        renderForgeList();
+    });
+}
+
+/* ── Import / Export ── */
+
+var pendingImport = null;
+
+function triggerImport() {
+    var input = document.getElementById('import-file');
+    input.value = '';
+    input.click();
+}
+
+function handleImportFile(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+        try {
+            var data = JSON.parse(reader.result);
+            var imported = normalizeImport(data);
+            if (!imported.length) {
+                flashStatus('Import file has no recognizable forge entries.');
+                return;
+            }
+            showImportPreview(imported);
+        } catch (e) {
+            flashStatus('Import failed: ' + e.message);
         }
-        refreshPermissionsUI();
-    });
+    };
+    reader.readAsText(file);
 }
 
-/* Content-script injection for custom forges is handled by the
-   background script via tabs.onUpdated + tabs.executeScript.
-   The options page only needs to request permission and save to
-   storage; the background picks up customForgeOrigins changes. */
-
-/* ── Custom forge save flow ── */
-
-function commitForgeStorage(gitlabsText, giteasText) {
-    var domains = parseDomainList(gitlabsText).concat(parseDomainList(giteasText));
-    browser.storage.local.set({
-        gitlabs: gitlabsText,
-        giteas:  giteasText,
-        customForgeOrigins: domains.map(patternFromDomain)
-    });
+function normalizeImport(data) {
+    var out = [];
+    if (Array.isArray(data && data.customForges)) {
+        data.customForges.forEach(function (f) {
+            if (f && f.domain && (f.type === 'gitlab' || f.type === 'gitea')) {
+                out.push({ domain: f.domain, type: f.type });
+            }
+        });
+    }
+    // Legacy shape: {gitlabs: [...], giteas: [...]}
+    if (Array.isArray(data && data.gitlabs)) {
+        data.gitlabs.forEach(function (d) { out.push({ domain: d, type: 'gitlab' }); });
+    }
+    if (Array.isArray(data && data.giteas)) {
+        data.giteas.forEach(function (d) { out.push({ domain: d, type: 'gitea' }); });
+    }
+    return out;
 }
 
-function saveCustomForges() {
-    var newGitlabs = parseDomainList(document.getElementById('gitlabs').value);
-    var newGiteas  = parseDomainList(document.getElementById('giteas').value);
-    var allNewDomains = newGitlabs.concat(newGiteas);
-    console.log('[SWH options] saveCustomForges', { newGitlabs: newGitlabs, newGiteas: newGiteas });
+function showImportPreview(imported) {
+    pendingImport = imported;
+    var box = document.getElementById('import-preview');
+    box.innerHTML = '';
+    var h = document.createElement('p');
+    h.textContent = 'About to import ' + imported.length + ' custom forge(s):';
+    box.appendChild(h);
+    var ul = document.createElement('ul');
+    imported.forEach(function (f) {
+        var li = document.createElement('li');
+        li.textContent = f.domain + ' (' + f.type + ')';
+        ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Grant and import';
+    btn.addEventListener('click', commitImport);
+    box.appendChild(btn);
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    cancel.style.marginLeft = '8px';
+    cancel.addEventListener('click', function () {
+        pendingImport = null;
+        box.innerHTML = '';
+    });
+    box.appendChild(cancel);
+}
 
-    browser.storage.local.get({
-        gitlabs: '',
-        giteas: '',
-        customForgeOrigins: []
-    }, function (items) {
-        // Determine "added" by comparing against customForgeOrigins
-        // (actually registered domains), not gitlabs/giteas text.
-        // The popup may have saved a domain to gitlabs without
-        // requesting permission or registering a content script.
-        var registeredOrigins = items.customForgeOrigins || [];
-        var registeredSet = {};
-        registeredOrigins.forEach(function (o) {
-            registeredSet[domainFromPattern(o)] = true;
-        });
+function commitImport() {
+    if (!pendingImport) return;
+    var imported = pendingImport;
+    migrateCustomForges(function (current) {
+        var byDomain = {};
+        current.forEach(function (f) { byDomain[f.domain] = f; });
+        imported.forEach(function (f) { if (!byDomain[f.domain]) byDomain[f.domain] = f; });
+        var merged = Object.keys(byDomain).map(function (d) { return byDomain[d]; });
+        var origins = imported.map(function (f) { return patternFromDomain(f.domain); });
 
-        var oldGitlabs = parseDomainList(items.gitlabs);
-        var oldGiteas  = parseDomainList(items.giteas);
-        var oldDomains = oldGitlabs.concat(oldGiteas);
-        var newSet = {};
-        allNewDomains.forEach(function (d) { newSet[d] = true; });
-
-        var added   = allNewDomains.filter(function (d) { return !registeredSet[d]; });
-        var removed = oldDomains.filter(function (d) { return !newSet[d]; });
-        console.log('[SWH options] diff', { added: added, removed: removed, registered: registeredOrigins });
-
-        // Handle removed domains immediately
-        removed.forEach(function (domain) {
-            var origin = patternFromDomain(domain);
-            console.log('[SWH options] removing', domain, origin);
-            browser.permissions.remove({ origins: [origin] }, function () {});
-        });
-
-        // Handle added domains — request permission (user gesture context)
-        if (added.length > 0) {
-            var addedOrigins = added.map(patternFromDomain);
-            console.log('[SWH options] requesting permission for', addedOrigins);
-            browser.permissions.request({ origins: addedOrigins }, function (granted) {
-                console.log('[SWH options] permission result:', granted);
-                var status = document.getElementById('status');
-                if (granted) {
-                    // Save only after permission confirmed
-                    commitForgeStorage(
-                        document.getElementById('gitlabs').value,
-                        document.getElementById('giteas').value
-                    );
-                    // Background script handles injection via tabs.onUpdated
-                    status.textContent = 'Custom forges saved and permissions granted. Reload forge pages to activate.';
-                } else {
-                    // User denied — strip denied domains, save the rest
-                    var deniedSet = {};
-                    added.forEach(function (d) { deniedSet[d] = true; });
-                    var keptGitlabs = newGitlabs.filter(function (d) { return !deniedSet[d]; });
-                    var keptGiteas  = newGiteas.filter(function (d) { return !deniedSet[d]; });
-                    document.getElementById('gitlabs').value = keptGitlabs.join('\n');
-                    document.getElementById('giteas').value  = keptGiteas.join('\n');
-                    commitForgeStorage(keptGitlabs.join('\n'), keptGiteas.join('\n'));
-                    status.textContent = 'Permission denied — domains removed.';
-                }
-                setTimeout(function () { status.textContent = ''; }, 2000);
-                refreshPermissionsUI();
+        browser.permissions.request({ origins: origins }, function (granted) {
+            // Always store the merged list — denied entries stay in the list
+            // with slider OFF so the user can retry later.
+            writeCustomForges(merged, function () {
+                pendingImport = null;
+                document.getElementById('import-preview').innerHTML = '';
+                flashStatus(granted
+                    ? 'Imported ' + imported.length + ' forge(s); permissions granted.'
+                    : 'Imported ' + imported.length + ' forge(s); permissions not granted — toggle each slider to retry.');
+                renderForgeList();
             });
-        } else {
-            // No new domains — just save removals
-            commitForgeStorage(
-                document.getElementById('gitlabs').value,
-                document.getElementById('giteas').value
-            );
-            console.log('[SWH options] no new domains, saved removals only');
-            var status = document.getElementById('status');
-            status.textContent = 'Custom forges saved.';
-            setTimeout(function () { status.textContent = ''; }, 1000);
-            refreshPermissionsUI();
-        }
+        });
     });
 }
 
-/* ── Save / restore options ── */
+function triggerExport() {
+    migrateCustomForges(function (list) {
+        var payload = { version: 1, customForges: list };
+        var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'updateswh-forges.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        flashStatus('Exported ' + list.length + ' custom forge(s).');
+    });
+}
+
+/* ── Status helper ── */
+
+function flashStatus(msg, ms) {
+    var status = document.getElementById('status');
+    status.textContent = msg;
+    setTimeout(function () { status.textContent = ''; }, ms || 2500);
+}
+
+/* ── Simple options (checkboxes + tokens) ── */
 
 function save_options() {
-    var swhdebug = document.getElementById('swh-debug').checked;
-
     browser.storage.local.set({
-        swhdebug: swhdebug
-    })
-
-    var showrequest = document.getElementById('showrequest').checked;
-
-    browser.storage.local.set({
-        showrequest: showrequest
-    })
-
-    var swhtoken = document.getElementById('swhtoken').value;
-
-    browser.storage.local.set({
-        swhtoken: swhtoken
-    })
-
-    var ghtoken = document.getElementById('ghtoken').value;
-
-    browser.storage.local.set({
-        ghtoken: ghtoken
-    })
-
-    var status = document.getElementById('status');
-    status.textContent = 'Preferences saved.';
-
-    setTimeout(function () {
-        status.textContent = ''
-    }, 1000)
+        swhdebug:    document.getElementById('swh-debug').checked,
+        showrequest: document.getElementById('showrequest').checked,
+        swhtoken:    document.getElementById('swhtoken').value,
+        ghtoken:     document.getElementById('ghtoken').value
+    });
+    flashStatus('Preferences saved.', 1000);
 }
 
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
 function restore_options() {
     browser.storage.local.get({
-        swhdebug: false
+        swhdebug: false,
+        showrequest: false,
+        swhtoken: '',
+        ghtoken: ''
     }, function (items) {
-        document.getElementById('swh-debug').checked = items.swhdebug;
-    });
-    browser.storage.local.get({
-        showrequest: false
-    }, function (items) {
+        document.getElementById('swh-debug').checked  = items.swhdebug;
         document.getElementById('showrequest').checked = items.showrequest;
+        document.getElementById('swhtoken').value      = items.swhtoken || '';
+        document.getElementById('ghtoken').value       = items.ghtoken || '';
     });
-    browser.storage.local.get({
-        swhtoken: null
-    }, function (items) {
-        document.getElementById('swhtoken').value = items.swhtoken;
-    });
-    browser.storage.local.get({
-        ghtoken: null
-    }, function (items) {
-        document.getElementById('ghtoken').value = items.ghtoken;
-    });
-    browser.storage.local.get({
-        gitlabs: null
-    }, function (items) {
-        document.getElementById('gitlabs').value = items.gitlabs;
-    });
-    browser.storage.local.get({
-        giteas: null
-    }, function (items) {
-        document.getElementById('giteas').value = items.giteas;
-    });
-    refreshPermissionsUI();
+    renderForgeList();
 }
 
-
-// Re-read forge textareas when storage changes (e.g. popup added a domain)
+/* Re-render when storage changes (e.g. popup added a custom forge) */
 browser.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'local') return;
-    if (changes.gitlabs || changes.giteas) {
-        if (changes.gitlabs && changes.gitlabs.newValue !== undefined) {
-            document.getElementById('gitlabs').value = changes.gitlabs.newValue;
-        }
-        if (changes.giteas && changes.giteas.newValue !== undefined) {
-            document.getElementById('giteas').value = changes.giteas.newValue;
-        }
-        refreshPermissionsUI();
+    if (changes.customForges || changes.customForgeOrigins) {
+        renderForgeList();
     }
 });
 
-document.addEventListener('DOMContentLoaded', restore_options);
-document.getElementById('swh-debug').addEventListener('click',
-    save_options);
-document.getElementById('showrequest').addEventListener('click',
-    save_options);
-document.getElementById('swhtoken').addEventListener('input',
-    save_options);
-document.getElementById('ghtoken').addEventListener('input',
-    save_options);
-document.getElementById('grant-all-btn').addEventListener('click',
-    grantAllBuiltins);
-document.getElementById('save-forges-btn').addEventListener('click',
-    saveCustomForges);
+document.addEventListener('DOMContentLoaded', function () {
+    restore_options();
+    document.getElementById('swh-debug').addEventListener('click', save_options);
+    document.getElementById('showrequest').addEventListener('click', save_options);
+    document.getElementById('swhtoken').addEventListener('input', save_options);
+    document.getElementById('ghtoken').addEventListener('input', save_options);
+    document.getElementById('grant-all-btn').addEventListener('click', grantAllBuiltins);
+    document.getElementById('import-btn').addEventListener('click', triggerImport);
+    document.getElementById('export-btn').addEventListener('click', triggerExport);
+    document.getElementById('import-file').addEventListener('change', handleImportFile);
+});

@@ -114,16 +114,29 @@ async function handle(url, forges, settings, getResults) {
     insertSaveIcon(results, settings);
 }
 
+export function customForgesByType(settings) {
+    // Prefer the canonical customForges array; fall back to legacy
+    // gitlabs/giteas text if migration hasn't run yet in this context.
+    const list = Array.isArray(settings.customForges) ? settings.customForges : null;
+    if (list) {
+        return {
+            gitlabs: list.filter((f) => f.type === "gitlab").map((f) => f.domain).join("\n"),
+            giteas:  list.filter((f) => f.type === "gitea").map((f)  => f.domain).join("\n"),
+        };
+    }
+    return { gitlabs: settings.gitlabs || "", giteas: settings.giteas || "" };
+}
+
 export async function start() {
     const settings = await loadSettings();
     debug = !!settings.swhdebug;
+    const { gitlabs, giteas } = customForgesByType(settings);
     dbg("start — settings loaded", {
-        gitlabs: settings.gitlabs,
-        giteas: settings.giteas,
-        customForgeOrigins: settings.customForgeOrigins,
+        customForges: settings.customForges,
+        gitlabs, giteas,
         swhdebug: settings.swhdebug,
     });
-    const forges = buildForges({ gitlabs: settings.gitlabs, giteas: settings.giteas });
+    const forges = buildForges({ gitlabs, giteas });
     dbg("forges built:", forges.length, "entries");
     const getResults = memoizeWithTTL((url) => computeResults(url, forges, settings), { ttlMs: CACHE_TTL_MS });
 
@@ -136,7 +149,7 @@ export async function start() {
     });
 }
 
-if (typeof document !== "undefined") {
+if (typeof document !== "undefined" && (typeof chrome !== "undefined" ? chrome : globalThis.browser)?.storage) {
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", start);
     } else {

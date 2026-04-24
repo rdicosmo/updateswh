@@ -3,28 +3,36 @@ if (chrome) {
 }
 
 function addForge(hostname, forgeType) {
-    var storageKey = forgeType === 'gitlab' ? 'gitlabs' : 'giteas';
-
-    // Save the domain to storage, then open the options page so the
-    // user can grant permission from there.  permissions.request does
-    // not work reliably from a popup (Firefox closes the popup when
-    // the permission dialog appears, losing the callback).
+    // Save to customForges array. permissions.request does not work
+    // reliably from a popup (Firefox closes the popup on dialog), so
+    // defer the grant to the options page (user clicks the slider).
     browser.storage.local.get({
-        [storageKey]: ''
+        customForges: null,
+        gitlabs: '',
+        giteas: ''
     }, function (items) {
-        var domains = items[storageKey];
-        if (domains === null || domains === '') {
-            domains = hostname;
-        } else {
-            // Avoid duplicates
-            var list = domains.split(/[\s,\n\r]+/).filter(Boolean);
-            if (list.indexOf(hostname) === -1) {
-                domains = domains + '\n' + hostname;
-            }
+        var list = Array.isArray(items.customForges) ? items.customForges.slice() : [];
+        // Migrate legacy storage if needed, so we don't lose entries.
+        if (!Array.isArray(items.customForges)) {
+            (items.gitlabs || '').split(/[\s,\n\r]+/).filter(Boolean).forEach(function (d) {
+                list.push({ domain: d, type: 'gitlab' });
+            });
+            (items.giteas || '').split(/[\s,\n\r]+/).filter(Boolean).forEach(function (d) {
+                list.push({ domain: d, type: 'gitea' });
+            });
         }
-        browser.storage.local.set({ [storageKey]: domains }, function () {
-            browser.runtime.openOptionsPage();
-            window.close();
+        if (!list.some(function (f) { return f.domain === hostname; })) {
+            list.push({ domain: hostname, type: forgeType });
+        }
+        var patterns = list.map(function (f) { return '*://' + f.domain + '/*'; });
+        browser.storage.local.set({
+            customForges: list,
+            customForgeOrigins: patterns
+        }, function () {
+            browser.storage.local.remove(['gitlabs', 'giteas'], function () {
+                browser.runtime.openOptionsPage();
+                window.close();
+            });
         });
     });
 }

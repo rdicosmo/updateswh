@@ -90,13 +90,28 @@ async function handleFetchSwhApi(data, sendResponse) {
 // Keep a set of custom forge domains for the tabs.onUpdated listener.
 let customForgeDomains = new Set();
 
-function refreshCustomDomains() {
-    browser.storage.local.get({ customForgeOrigins: [] }, (items) => {
-        customForgeDomains = new Set();
-        (items.customForgeOrigins || []).forEach((origin) => {
-            const domain = origin.replace(/^\*:\/\//, "").replace(/\/\*$/, "");
-            if (domain) customForgeDomains.add(domain);
+function migrateAndLoadCustomForges(cb) {
+    browser.storage.local.get({
+        customForges: null,
+        customForgeOrigins: null,
+        gitlabs: "",
+        giteas: ""
+    }, (items) => {
+        if (Array.isArray(items.customForges)) { cb(items.customForges); return; }
+        const list = [];
+        const push = (d, type) => { if (d) list.push({ domain: d, type }); };
+        (items.gitlabs || "").split(/[\s,\n\r]+/).filter(Boolean).forEach((d) => push(d, "gitlab"));
+        (items.giteas  || "").split(/[\s,\n\r]+/).filter(Boolean).forEach((d) => push(d, "gitea"));
+        const patterns = list.map((f) => `*://${f.domain}/*`);
+        browser.storage.local.set({ customForges: list, customForgeOrigins: patterns }, () => {
+            browser.storage.local.remove(["gitlabs", "giteas"], () => cb(list));
         });
+    });
+}
+
+function refreshCustomDomains() {
+    migrateAndLoadCustomForges((list) => {
+        customForgeDomains = new Set(list.map((f) => f.domain));
     });
 }
 
@@ -105,7 +120,7 @@ refreshCustomDomains();
 
 // Reload when storage changes (options page saved new domains)
 browser.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes.customForgeOrigins) {
+    if (area === "local" && (changes.customForges || changes.customForgeOrigins)) {
         refreshCustomDomains();
     }
 });
