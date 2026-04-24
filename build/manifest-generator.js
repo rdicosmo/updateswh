@@ -31,14 +31,11 @@ function generateManifest(version) {
         manifest.content_security_policy = baseManifest.content_security_policy_v2;
         manifest.web_accessible_resources = baseManifest.web_accessible_resources_v2;
         manifest.options_ui = baseManifest.options_ui_v2;
-        // Firefox-specific settings — data collection consent declaration
-        // (required for new submissions; recommended for existing ones).
-        // gecko.id is NOT set here because adding a fresh id to a manifest
-        // whose AMO listing already has an auto-assigned id would make AMO
-        // treat this upload as a different extension. Retrieve the
-        // existing id from the AMO developer dashboard and add it as
-        // "id": "<existing-amo-id>" inside the gecko block before the
-        // warning becomes blocking.
+        // Firefox-specific settings: the AMO-assigned extension id and
+        // the data-collection-permissions declaration (the id matches
+        // the one auto-assigned on the first submission under the
+        // "updateswh" slug; changing it would make AMO treat any
+        // upload as a different extension).
         if (baseManifest.browser_specific_settings_v2) {
             manifest.browser_specific_settings = baseManifest.browser_specific_settings_v2;
         }
