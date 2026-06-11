@@ -334,3 +334,43 @@ testable. For any silent-failure-sensitive handler, extract the pure
 shape function first and exercise it. Also: the real fix for an API
 behind a JS challenge is on the server side (exclude `/api/*` from
 Anubis) — the extension can only make the failure visible.
+
+## 2026-06-11 — Scoping the Safari port; SAF-1 shipped
+
+**Goal.** A Safari version without forking the codebase. Research
+(Apple docs, MDN browser-compat-data, Bitwarden/AdGuard repos as
+precedents) confirmed Safari consumes a standard MV3 WebExtension
+wrapped in a thin native app generated once by
+`xcrun safari-web-extension-converter` — the wrapper is committed
+and never regenerated; releases stay `npm run build` + `xcodebuild`.
+
+**The one real incompatibility.** Safari's background service worker
+cannot perform cross-origin fetch (CORS rejects the
+`safari-web-extension://` origin even with host permission — a
+long-standing WebKit bug). Our entire SWH API path goes through the
+background proxy, so Safari must run the background as a
+non-persistent event page instead. The fix is the MDN-documented
+dual-key manifest: `background` carries both `scripts` (Safari,
+event page) and `service_worker` (Chrome/Edge). Firefox stays on
+MV2 and is untouched.
+
+**What needed no change at all.** The v0.9.0 runtime-permission
+architecture maps 1:1 onto Safari's per-site grant model (our
+`permissions.request` from the grant button triggers Safari's native
+sheet); custom-forge injection already uses the MV3
+`scripting.executeScript` path (Safari 16.4+); and
+`sendMessageWithTimeout` — built for Chrome MV3 service-worker
+suspension — also covers Safari's even more aggressive background
+suspension. The lean rewrite's bet on flat, browser-neutral code
+paid off here.
+
+**Shipped (SAF-1).** Dual-key `background_v3` in
+`src/manifest-base.json`, `Safari.zip` make target (byte-identical
+to Chrome.zip), .gitignore + docs. Verified 106 unit + 18 e2e green;
+Chromium loads the dual-key manifest without complaint.
+
+**Blocked on.** SAF-2 onward needs a Mac (one-time converter run +
+release builds) and an Apple Developer Program membership ($99/yr,
+required for any distribution channel — App Store or notarized
+direct download). Plan and open questions in LEAN_REWRITE_PLAN.md
+§ "Safari port (2026-06-11)".

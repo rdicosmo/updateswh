@@ -348,6 +348,63 @@ injector doesn't need to re-parse.
 - [ ] PFS-D. Popup: write directly to `customForges`.
 - [ ] PFS-E. Tests + Firefox ESR smoke.
 
+## Safari port (2026-06-11)
+
+Single codebase preserved: Safari consumes the existing MV3 build.
+Researched against Apple docs + MDN compat data; floor is Safari 16.4
+(`scripting.registerContentScripts`; `optional_host_permissions` is
+15.5, `permissions.request` is 14).
+
+Key constraint driving the design: Safari's background **service
+worker cannot do cross-origin fetch** (long-standing CORS bug, even
+with host permission), so Safari must run the background as a
+non-persistent **event page**. The MV3 manifest carries both
+`background.scripts` and `background.service_worker` (the
+MDN-documented dual-key pattern): Chrome/Edge take the service
+worker, Safari takes the event page, Firefox stays on MV2. Never set
+`background.preferred_environment` to `service_worker`.
+
+What maps cleanly: runtime host permissions → Safari's native
+per-site grant sheet (triggered by our existing `permissions.request`
+from the grant button); custom-forge injection via `tabs.onUpdated` +
+`scripting.executeScript` (Safari 16.4+); `sendMessageWithTimeout`
+already guards against Safari's aggressive background suspension;
+`browser.*` promises are native in Safari. No `storage.sync` in the
+codebase (good — Safari's doesn't actually sync).
+
+### Phases
+
+- [x] SAF-1. Dual-key `background_v3` in `src/manifest-base.json`;
+      `Safari.zip` Makefile target (copy of Chrome.zip). Verified:
+      106 unit + 18 e2e green, Chromium loads the dual-key manifest.
+- [ ] SAF-2. One-time Xcode wrapper on a Mac:
+      `xcrun safari-web-extension-converter extension/ --macos-only
+      --copy-resources` (tool renamed `safari-web-extension-packager`
+      in Xcode 26). Commit the generated `safari/` project; add a
+      build phase copying `extension/` into the appex `Resources/`.
+      Converter is never re-run after this. For dev-only testing,
+      Safari 26 Settings → Developer → "Add Temporary Extension"
+      loads the bare `extension/` folder without Xcode.
+- [ ] SAF-3. Manual test pass on real Safari (Firefox-ESR lesson:
+      permission APIs can't be trusted from stubs): grant-button →
+      per-site sheet, SWH proxy fetch from the event page, custom
+      forge injection, suspension behavior.
+- [ ] SAF-4. Distribution: requires Apple Developer Program
+      ($99/yr — go/no-go gate). Recommended channel: Mac App Store
+      (alternative: Developer ID + notarized direct download).
+      CI later via GitHub Actions macOS runner (`xcodebuild` +
+      `notarytool`). Update untracked HOWTO-RELEASE.
+- [ ] SAF-5 (optional, deferred). iOS target via
+      `--rebuild-project`; needs popup/safe-area CSS work and App
+      Store review of the container app. Decide after macOS ships.
+
+### Open questions (blocking SAF-2+)
+
+- Mac access (even occasional) for the converter run + release builds?
+- Apple Developer Program membership ($99/yr) — required for any
+  distribution channel; without it the port is dev-only.
+- App Store vs notarized direct download (recommendation: App Store).
+
 ## Progress log
 
 _Append one line per meaningful change. Keep terse._
@@ -399,6 +456,11 @@ _Append one line per meaningful change. Keep terse._
   array. 72/72 unit tests pass (4 new in `customForges.test.js`); build
   green at 23.53 KB. **Next (PFS-E): Firefox ESR + Chrome smoke; if
   green, commit + journal entry.** No commits yet on this batch.
+- 2026-06-11 — SAF-1 complete: dual-key `background_v3`
+  (scripts + service_worker) in manifest-base; `Safari.zip` make
+  target; 106 unit + 18 e2e green in Chromium with the dual-key
+  manifest. **Next (SAF-2): converter run on a Mac — blocked on
+  Mac access + Apple Developer Program decision.**
 
 ## Session handoff — 2026-04-14
 

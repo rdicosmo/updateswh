@@ -80,12 +80,21 @@ npm test                # jest + jsdom; 88 tests across cache, navigation,
                         #   forges, dateUtils, permissions, UI,
                         #   swhResponse, swhApi
 npm run build           # vite + manifest-generator
-make                    # build + zip for Firefox / Chrome / Edge
+make                    # build + zip for Firefox / Chrome / Edge / Safari
 ```
 
 `src/manifest-base.json` is the single source of truth for both MV2 and MV3.
 `build/manifest-generator.js` emits `extension/manifest.json` (MV2) and
 `extension/manifest-v3.json` (MV3).
+
+The MV3 manifest deliberately carries **both** `background.scripts` and
+`background.service_worker`: Chrome/Edge run the service worker, Safari
+runs a non-persistent event page. Safari's background service worker
+cannot do cross-origin fetch, so the event page is required for the SWH
+proxy — do not remove the `scripts` key or set
+`background.preferred_environment`. Safari.zip is byte-identical to
+Chrome.zip; the Safari port plan lives in `LEAN_REWRITE_PLAN.md`
+§ "Safari port (2026-06-11)".
 
 ## Permissions model
 

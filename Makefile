@@ -1,7 +1,13 @@
 .PHONY: clean all build test test-chrome e2e
 
 # Firefox gets the MV2 manifest today (manifest.json), Chrome/Edge get MV3
-# (manifest-v3.json renamed to manifest.json in-zip). The Firefox-only
+# (manifest-v3.json renamed to manifest.json in-zip). Safari.zip is the
+# same MV3 build: the manifest carries both background.scripts and
+# background.service_worker, so Chrome runs the service worker and
+# Safari runs a non-persistent event page (Safari's background SW
+# cannot do cross-origin fetch, so the event page is required for the
+# SWH proxy). Feed Safari.zip (or extension/) to
+# `xcrun safari-web-extension-converter` on a Mac. The Firefox-only
 # identifying block (AMO gecko.id + data_collection_permissions) lives in
 # build/firefox-gecko.json and is merged into the Firefox manifest at zip
 # time, inside a throwaway temp dir so the main extension/ tree stays
@@ -27,12 +33,14 @@ all: clean build
 	printf "@ manifest-v3.json\n@=manifest.json\n" | zipnote -w Chrome.zip
 	printf "Preparing Edge.zip (just a copy of Chrome.zip)\n"
 	cp Chrome.zip Edge.zip
+	printf "Preparing Safari.zip (just a copy of Chrome.zip)\n"
+	cp Chrome.zip Safari.zip
 
 build:
 	npm run build
 
 clean:
-	rm -f FireFox.zip Chrome.zip Edge.zip
+	rm -f FireFox.zip Chrome.zip Edge.zip Safari.zip
 	rm -rf $(FF_BUILD_DIR)
 	rm -f extension/updateswh.js extension/manifest.json extension/manifest-v3.json
 
