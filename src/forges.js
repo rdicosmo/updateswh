@@ -122,7 +122,7 @@ export const DEFAULT_FORGES = Object.freeze([
     {
         name: "GitHub",
         pattern: /^https?:\/\/github\.com\/[^/]+\/[^/]+/,
-        reject:  /^https?:\/\/github\.com\/(apps|features|marketplace|orgs|topics|collections|settings|([^/]+\/[^/]+\/search\?))/,
+        reject:  /^https?:\/\/github\.com\/(apps|features|marketplace|orgs|topics|collections|settings|sponsors|([^/]+\/[^/]+\/search\?))/,
         setup: githubSetup,
     },
     {
