@@ -59,6 +59,19 @@ describe("forges — flat table", () => {
             const r = setupForge("https://gitlab.com/org/subgroup/project", forge);
             expect(r.userproject).toBe(encodeURIComponent("org/subgroup/project"));
         });
+
+        test("setup builds gitlab API url simple path", () => {
+            const forge = findMatchingForge("https://gitlab.example.org/user/project");
+            const r = setupForge("https://gitlab.example.org/user/project", forge);
+            expect(r.forgeapiurl).toBe("https://gitlab.example.org/api/v4/projects/user%2Fproject");
+        });
+
+        test("setup builds gitlab API url long path with dash", () => {
+            const list = buildForges({ gitlabs: "www.minka.gob.ec"});
+            const forge = findMatchingForge("https://www.minka.gob.ec/mintel/ge/firmaec/firmadigital-libreria", list);
+            const r = setupForge("https://www.minka.gob.ec/mintel/ge/firmaec/firmadigital-libreria", forge);
+            expect(r.forgeapiurl).toBe("https://www.minka.gob.ec/api/v4/projects/mintel%2Fge%2Ffirmaec%2Ffirmadigital-libreria");
+        });
     });
 
     describe("Bitbucket", () => {

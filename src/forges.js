@@ -145,13 +145,13 @@ export const DEFAULT_FORGES = Object.freeze([
     },
     {
         name: "GitLab instance",
-        pattern: new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/[^/]+\\/[^/]+(\\/[^-][^/]+)*`),
+        pattern: new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/[^/]+\\/[^/]+(\\/[^/]+)*`),
         reject:  new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/users\\/sign_in`),
         setup: gitlabInstanceSetup,
     },
     {
         name: "GitLab instance",
-        pattern: /^https?:\/\/gitlab\.[^./]+\.[^./]+\/[^/]+\/[^/]+(\/[^-][^/]+)*/,
+        pattern: /^https?:\/\/gitlab\.[^./]+\.[^./]+\/[^/]+\/[^/]+(\/[^/]+)*/,
         reject:  /^https?:\/\/gitlab\.[^./]+\.[^./]+\/users\/sign_in/,
         setup: gitlabInstanceSetup,
     },
@@ -227,7 +227,7 @@ export function gitlabInstanceHandler(domainsInput) {
     const alt = domainAlternation(domainsInput);
     return {
         name: "GitLab instance",
-        pattern: new RegExp(`^https?:\\/\\/(${alt})\\/[^/]+\\/[^/]+`),
+        pattern: new RegExp(`^https?:\\/\\/(${alt})\\/[^/]+\\/[^/]+(\\/[^/]+)*`),
         reject:  new RegExp(`^https?:\\/\\/(${alt})\\/users\\/sign_in`),
         setup: gitlabInstanceSetup,
     };
