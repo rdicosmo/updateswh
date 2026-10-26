@@ -16,7 +16,7 @@
 # Requires `jq` at build time (Debian/Ubuntu: apt-get install jq).
 
 FF_BUILD_DIR := extension-firefox-build
-FF_MANIFEST  := manifest.json
+FF_MANIFEST  := manifest-v3.json
 
 all: clean build
 	printf "Preparing FireFox.zip\n"
@@ -24,7 +24,7 @@ all: clean build
 	mkdir -p $(FF_BUILD_DIR)
 	cp -r extension/* $(FF_BUILD_DIR)/
 	rm -f $(FF_BUILD_DIR)/manifest-v3.json
-	jq -s '.[0] * .[1]' extension/$(FF_MANIFEST) build/firefox-gecko.json > $(FF_BUILD_DIR)/$(FF_MANIFEST)
+	jq -s '.[0] * .[1]' extension/$(FF_MANIFEST) build/firefox-gecko.json > $(FF_BUILD_DIR)/manifest.json
 	(cd $(FF_BUILD_DIR); zip -r ../FireFox.zip .)
 	rm -rf $(FF_BUILD_DIR)
 	printf "Preparing Chrome.zip\n"
