@@ -17,7 +17,6 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
 import { fileURLToPath } from "node:url";
 import puppeteer from "puppeteer-core";
 
@@ -29,7 +28,7 @@ const EXECUTABLE_PATH = process.env.CHROME_BIN || "/usr/bin/chromium";
 
 export async function prepareExtensionDir() {
     const src = path.join(REPO_ROOT, "extension");
-    const dst = await fs.mkdtemp(path.join(os.tmpdir(), "updateswh-e2e-"));
+    const dst = await fs.mkdtemp(path.join(process.cwd(), "updateswh-e2e-"));
     await fs.cp(src, dst, { recursive: true });
     // Chrome needs MV3 manifest.json when loading unpacked.
     const mv3 = path.join(dst, "manifest-v3.json");
@@ -40,8 +39,6 @@ export async function prepareExtensionDir() {
 
 export async function launchBrowser(extensionDir, { userAgent } = {}) {
     const args = [
-        `--disable-extensions-except=${extensionDir}`,
-        `--load-extension=${extensionDir}`,
         "--no-sandbox",
         "--disable-dev-shm-usage",
         "--disable-features=DialMediaRouteProvider",
@@ -50,7 +47,8 @@ export async function launchBrowser(extensionDir, { userAgent } = {}) {
     const browser = await puppeteer.launch({
         executablePath: EXECUTABLE_PATH,
         headless: "new",
-        args,
+        enableExtensions: [extensionDir],
+        args: args
     });
     return browser;
 }
