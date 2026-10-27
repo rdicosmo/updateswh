@@ -105,6 +105,12 @@ describe("forges — flat table", () => {
             const r = setupForge("https://codeberg.org/alice/repo", forge);
             expect(r.forgeapiurl).toBe("https://codeberg.org/api/v1/repos/alice/repo");
         });
+
+        test("setup builds codeberg API url with project URL suffixed by .git", () => {
+            const forge = findMatchingForge("https://codeberg.org/alice/repo.git");
+            const r = setupForge("https://codeberg.org/alice/repo.git", forge);
+            expect(r.forgeapiurl).toBe("https://codeberg.org/api/v1/repos/alice/repo");
+        });
     });
 
     describe("Gitee", () => {

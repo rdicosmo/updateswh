@@ -41,7 +41,7 @@ function gitlabInstanceSetup(projecturl) {
 
 function giteaInstanceSetup(projecturl) {
     const origin = new URL(projecturl).origin;
-    const userproject = pathFrom(projecturl);
+    const userproject = pathFrom(projecturl).replace(/\.git$/, "");
     return {
         userproject,
         forgeapiurl: `${origin}/api/v1/repos/${userproject}`,
