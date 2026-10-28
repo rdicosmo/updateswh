@@ -94,10 +94,10 @@ tests/
   e2e/                  headless Chromium end-to-end: mock server +
                         puppeteer harness + 18 scenarios (live smoke gated
                         behind E2E_LIVE=1)
-  e2e-firefox/          Firefox ESR end-to-end on the MV2 build: proxy +
+  e2e-firefox/          Firefox end-to-end on the MV2 build: proxy +
                         BiDi harness, options-page permission flows
 .github/workflows/
-  ci.yml                two-tier CI: unit first, e2e after
+  ci.yml                CI: unit first, then Chromium and Firefox e2e
 ```
 
 ## Colour codes
@@ -298,7 +298,8 @@ Chromium does not enforce the same way, so permission flows need this
 tier. A local proxy (`server.js`) serves a fixture forge over http and
 refuses every https connection, so nothing reaches the network. Run it
 with `npm run test:e2e:firefox` (or `make e2e-firefox`); set
-`FIREFOX_BIN` if Firefox ESR is not at `/usr/bin/firefox-esr`.
+`FIREFOX_BIN` if Firefox ESR is not at `/usr/bin/firefox-esr`. CI runs
+the same suite on the latest Firefox release.
 
 For a new forge, at minimum: add matching / rejection / setup cases to
 `forgeHandlers.test.js`. An e2e scenario is welcome but not required —
@@ -331,7 +332,8 @@ or equivalent).
 
 Once tested on your new forge and on the existing ones, please open a pull
 request at <https://github.com/rdicosmo/updateswh/>. The CI workflow runs
-the unit tier on every PR and the e2e tier after unit passes.
+the unit tier on every PR, then the Chromium and Firefox e2e tiers once
+unit passes.
 
 Thank you!
 
