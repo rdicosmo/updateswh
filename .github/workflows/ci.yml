@@ -36,3 +36,43 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/chromium-browser
         run: npm run test:e2e
+
+  e2e-firefox:
+    name: e2e (headless Firefox)
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      # System Firefox — puppeteer-core does not ship a browser.
+      - name: Install Firefox
+        # install latest firefox version from mozilla apt repository
+        run: |
+          wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- \
+            | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
+          sudo tee /etc/apt/sources.list.d/mozilla.sources > /dev/null << EOF
+          Types: deb
+          URIs: https://packages.mozilla.org/apt
+          Suites: mozilla
+          Components: main
+          Signed-By: /etc/apt/keyrings/packages.mozilla.org.asc
+          EOF
+          sudo tee /etc/apt/preferences.d/mozilla > /dev/null << EOF
+          Package: *
+          Pin: origin packages.mozilla.org
+          Pin-Priority: 1000
+          EOF
+          sudo tee /etc/apt/preferences.d/mozilla > /dev/null << EOF
+          Package: firefox
+          Pin: release o=Ubuntu
+          Pin-Priority: -1
+          EOF
+          sudo apt-get update
+          sudo apt-get install -y firefox
+      - run: npm install
+      - name: Run E2E suite
+        env:
+          FIREFOX_BIN: /usr/bin/firefox
+        run: npm run test:e2e:firefox
