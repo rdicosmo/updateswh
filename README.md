@@ -47,7 +47,7 @@ starting point for designing and developing this extension.
 
 ```
 npm install
-npm test                # jest unit tests (jsdom); 67 tests
+npm test                # jest unit tests (jsdom); 114 tests
 npm run build           # build extension/updateswh.js + manifests
 make                    # build + zip FireFox.zip / Chrome.zip / Edge.zip
 ```
