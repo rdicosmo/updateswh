@@ -6,8 +6,6 @@ import {
     requestOrigins,
     removeOrigins,
     listGrantedOrigins,
-    registerContentScript,
-    unregisterContentScript,
 } from "../../src/permissions.js";
 
 /* ── stub chrome.permissions ── */
@@ -20,10 +18,6 @@ function stubPermissions(granted = []) {
             request:  ({ origins }, cb) => { origins.forEach((o) => state.add(o)); cb(true); },
             remove:   ({ origins }, cb) => { origins.forEach((o) => state.delete(o)); cb(true); },
             getAll:   (cb) => cb({ origins: [...state] }),
-        },
-        scripting: {
-            registerContentScripts:   jest.fn().mockResolvedValue(undefined),
-            unregisterContentScripts: jest.fn().mockResolvedValue(undefined),
         },
     };
     return state;
@@ -123,51 +117,5 @@ describe("listGrantedOrigins", () => {
 
     test("returns empty array when api is unavailable", async () => {
         expect(await listGrantedOrigins()).toEqual([]);
-    });
-});
-
-/* ── dynamic content script registration ── */
-
-describe("registerContentScript (MV3 path)", () => {
-    test("calls chrome.scripting.registerContentScripts", async () => {
-        stubPermissions();
-        await registerContentScript("custom-forge-1", ["*://example.com/*"]);
-        expect(chrome.scripting.registerContentScripts).toHaveBeenCalledWith([{
-            id: "custom-forge-1",
-            matches: ["*://example.com/*"],
-            js:  ["updateswh.js"],
-            css: ["css/updateswh.css"],
-            runAt: "document_idle",
-        }]);
-    });
-});
-
-describe("unregisterContentScript (MV3 path)", () => {
-    test("calls chrome.scripting.unregisterContentScripts", async () => {
-        stubPermissions();
-        await unregisterContentScript("custom-forge-1", null);
-        expect(chrome.scripting.unregisterContentScripts).toHaveBeenCalledWith({ ids: ["custom-forge-1"] });
-    });
-});
-
-describe("registerContentScript (MV2 Firefox path)", () => {
-    test("calls browser.contentScripts.register", async () => {
-        const mockRegister = jest.fn().mockResolvedValue({ unregister: jest.fn() });
-        globalThis.browser = { contentScripts: { register: mockRegister } };
-        await registerContentScript("custom-forge-1", ["*://example.com/*"]);
-        expect(mockRegister).toHaveBeenCalledWith({
-            matches: ["*://example.com/*"],
-            js:  [{ file: "updateswh.js" }],
-            css: [{ file: "css/updateswh.css" }],
-            runAt: "document_idle",
-        });
-    });
-});
-
-describe("unregisterContentScript (MV2 Firefox path)", () => {
-    test("calls handle.unregister()", async () => {
-        const handle = { unregister: jest.fn().mockResolvedValue(undefined) };
-        await unregisterContentScript("ignored-id", handle);
-        expect(handle.unregister).toHaveBeenCalled();
     });
 });

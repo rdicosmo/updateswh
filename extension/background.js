@@ -133,9 +133,8 @@ browser.storage.onChanged.addListener((changes, area) => {
     }
 });
 
-// Inject content script into custom forge pages via tabs.executeScript.
-// This is more reliable than contentScripts.register, which returns
-// undefined on Firefox ESR.
+// Inject the content script into custom forge pages, which the
+// manifest's content_scripts.matches does not cover.
 function injectCustomForge(tabId, url) {
     let hostname;
     try { hostname = new URL(url).hostname; } catch { return; }

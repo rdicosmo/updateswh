@@ -65,7 +65,7 @@ src/
   forges.js             flat forge table + matches / findMatchingForge /
                         setupForge; BUILTIN_FORGE_DOMAINS; BUILTIN_DOMAIN_TYPES;
                         gitlabInstanceHandler / giteaInstanceHandler (user-defined)
-  permissions.js        chrome.permissions / chrome.scripting wrappers (MV2 + MV3)
+  permissions.js        chrome.permissions wrappers (MV2 + MV3)
   manifest-base.json    single source for MV2 + MV3 manifests
   api/
     forge.js            direct fetch; maps HTTP status to an errorType
@@ -123,10 +123,10 @@ Forge host permissions are **optional** and requested at runtime. There is no
 - `optional_host_permissions` (MV3) / `optional_permissions` (MV2): the
   built-in forge page domains + `api.github.com` + `api.bitbucket.org`,
   plus `<all_urls>` as a last-resort fallback the store reviewers accept.
-- `content_scripts.matches`: the built-in page domains. Custom user-added
-  domains get dynamic content-script registration via
-  `chrome.scripting.registerContentScripts` (MV3) or
-  `browser.contentScripts.register` / `tabs.executeScript` (MV2 Firefox).
+- `content_scripts.matches`: the built-in page domains. On custom
+  user-added domains the background script injects the content script
+  from `tabs.onUpdated`, via `scripting.executeScript` where available,
+  else `tabs.executeScript`.
 
 The canonical list of built-in domains is `BUILTIN_FORGE_DOMAINS` in
 `src/forges.js`. When adding a new built-in forge, update:

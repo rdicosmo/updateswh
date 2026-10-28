@@ -38,12 +38,11 @@ grant button is shown instead.
   match patterns and optional host permissions. This file is the
   contract documented in `CONTRIBUTING.md`; treat changes to its shape
   seriously.
-- `src/permissions.js` — thin wrappers over `chrome.permissions` and
-  `chrome.scripting` / `browser.contentScripts` for runtime host-permission
-  management. Handles MV2 (Firefox) and MV3 (Chrome/Edge) paths.
+- `src/permissions.js` — thin wrappers over `chrome.permissions` for
+  runtime host-permission management. Handles MV2 (Firefox) and MV3
+  (Chrome/Edge) paths.
   Exports: `hasOrigins`, `requestOrigins`, `removeOrigins`,
-  `listGrantedOrigins`, `originPattern`, `domainPatterns`,
-  `registerContentScript`, `unregisterContentScript`.
+  `listGrantedOrigins`, `originPattern`, `domainPatterns`.
 - `src/api/forge.js` — direct `fetch` (forges allow CORS). Maps HTTP status to
   an errorType from `COLOR_CODES`.
 - `src/api/swh.js` — `sendMessageWithTimeout({type:"FETCH_SWH_API", ...})`;
@@ -64,13 +63,12 @@ grant button is shown instead.
   users can refresh a bot-challenge cookie.
 - `extension/background.js` — `FETCH_SWH_API` message handler (checks
   `Content-Type` to detect bot-challenge pages), `createtab`,
-  `onInstalled` welcome page + options-page opener.  On startup,
-  re-registers dynamic content scripts for custom forge domains.
+  `onInstalled` welcome page + options-page opener.  Injects the
+  content script into custom forge pages from `tabs.onUpdated`.
 - `extension/options.js` — settings page. "Grant access to all built-in
   forges" batch button reads `optional_host_permissions` from the
   manifest at runtime. "Save custom forge domains" button diffs
-  domain lists, requests/revokes permissions, and registers/unregisters
-  dynamic content scripts per domain.
+  domain lists and requests/revokes permissions per domain.
 
 ## Build and test
 
@@ -107,12 +105,12 @@ runtime rather than demanding `<all_urls>` at install.
   built-in forge page domains + 2 API-only domains (`api.github.com`,
   `api.bitbucket.org`). Listed explicitly in `src/manifest-base.json`.
 - `content_scripts.matches`: the 13 built-in page domains. The content
-  script only injects on these pages (plus dynamically registered custom
-  forge domains).
+  script only injects on these pages (plus custom forge domains, see
+  below).
 - Custom Gitea/GitLab instances added via the options page get per-domain
-  permission requests at save time, and dynamic content-script registration
-  via `chrome.scripting.registerContentScripts` (MV3) /
-  `browser.contentScripts.register` (MV2 Firefox).
+  permission requests at save time. The background script injects the
+  content script into their pages from `tabs.onUpdated`, via
+  `scripting.executeScript` where available, else `tabs.executeScript`.
 - Wildcard forge entries (`gitlab.*.*`, `gitea.*.*`) remain in
   `DEFAULT_FORGES` for URL matching but cannot be expressed as Chrome
   match patterns. Users must add specific instances via the options page.

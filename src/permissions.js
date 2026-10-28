@@ -1,5 +1,5 @@
 /**
- * Thin wrappers over chrome.permissions / chrome.scripting for
+ * Thin wrappers over chrome.permissions for
  * runtime host-permission management.  Works in both MV2 (Firefox)
  * and MV3 (Chrome / Edge).
  *
@@ -107,60 +107,4 @@ export function listGrantedOrigins() {
     return new Promise((resolve) =>
         perms.getAll((p) => resolve(p.origins || [])),
     );
-}
-
-/**
- * Register a dynamic content script for a set of match-patterns.
- * MV3: chrome.scripting.registerContentScripts
- * MV2 Firefox: browser.contentScripts.register
- *
- * @param {string}   id       Unique script registration id.
- * @param {string[]} matches  Origin match-patterns.
- * @returns {Promise<object|null>}  Registration handle (MV2) or null.
- */
-export async function registerContentScript(id, matches) {
-    if (typeof chrome !== "undefined" && chrome.scripting?.registerContentScripts) {
-        await chrome.scripting.registerContentScripts([{
-            id,
-            matches,
-            js:  ["updateswh.js"],
-            css: ["css/updateswh.css"],
-            runAt: "document_idle",
-        }]);
-        return null;
-    }
-    // MV2 Firefox: use globalThis.browser (not a potentially reassigned var)
-    const ffBrowser = globalThis.browser;
-    if (ffBrowser?.contentScripts?.register) {
-        try {
-            const result = ffBrowser.contentScripts.register({
-                matches,
-                js:  [{ file: "updateswh.js" }],
-                css: [{ file: "css/updateswh.css" }],
-                runAt: "document_idle",
-            });
-            return result && typeof result.then === "function" ? result : Promise.resolve(result);
-        } catch (e) {
-            return Promise.resolve(null);
-        }
-    }
-    return null;
-}
-
-/**
- * Unregister a dynamic content script by id.
- * MV3: chrome.scripting.unregisterContentScripts
- * MV2 Firefox: call .unregister() on the handle returned by register.
- *
- * @param {string}      id      Registration id (MV3).
- * @param {object|null} handle  Registration handle (MV2), if available.
- */
-export async function unregisterContentScript(id, handle) {
-    if (typeof chrome !== "undefined" && chrome.scripting?.unregisterContentScripts) {
-        await chrome.scripting.unregisterContentScripts({ ids: [id] });
-        return;
-    }
-    if (handle && typeof handle.unregister === "function") {
-        await handle.unregister();
-    }
 }
