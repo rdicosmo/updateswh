@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/rdicosmo/updateswh#readme",
   "devDependencies": {
+    "@babel/core": "^8.0.9",
     "@babel/preset-env": "^8.0.7",
     "babel-jest": "^30.5.2",
     "eslint": "^10.13.0",
