@@ -87,6 +87,10 @@ const GITEA_KNOWN_DOMAINS   = ["git.rampin.org", "repo.radio", "git.fsfe.org"];
 // "+gitea-X.Y.Z" compat suffix; bare 1.x versions are Gitea).
 const FORGEJO_KNOWN_DOMAINS = ["codeberg.org", "git.disroot.org", "git.minetest.land"];
 
+// GitLab project paths nest groups to any depth; the `/-/` segment starts
+// the project's sub-pages (tree, blob, issues, ...), which are not part of it.
+const GITLAB_SUBPATH = String.raw`(\/(?!-(?:\/|$))[^/]+)*`;
+
 const GITLAB_KNOWN  = GITLAB_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
 const GITEA_KNOWN   = GITEA_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
 const FORGEJO_KNOWN = FORGEJO_KNOWN_DOMAINS.map(d => d.replace(/\./g, "\\.")).join("|");
@@ -133,7 +137,7 @@ export const DEFAULT_FORGES = Object.freeze([
     },
     {
         name: "GitLab",
-        pattern: /^https?:\/\/gitlab\.com\/[^/]+\/[^/]+(\/[^-][^/]+)*/,
+        pattern: new RegExp(String.raw`^https?:\/\/gitlab\.com\/[^/]+\/[^/]+` + GITLAB_SUBPATH),
         reject:  /^https?:\/\/gitlab\.com\/explore\//,
         setup: gitlabDotComSetup,
     },
@@ -145,13 +149,13 @@ export const DEFAULT_FORGES = Object.freeze([
     },
     {
         name: "GitLab instance",
-        pattern: new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/[^/]+\\/[^/]+(\\/[^/]+)*`),
+        pattern: new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/[^/]+\\/[^/]+` + GITLAB_SUBPATH),
         reject:  new RegExp(`^https?:\\/\\/(${GITLAB_KNOWN})\\/users\\/sign_in`),
         setup: gitlabInstanceSetup,
     },
     {
         name: "GitLab instance",
-        pattern: /^https?:\/\/gitlab\.[^./]+\.[^./]+\/[^/]+\/[^/]+(\/[^/]+)*/,
+        pattern: new RegExp(String.raw`^https?:\/\/gitlab\.[^./]+\.[^./]+\/[^/]+\/[^/]+` + GITLAB_SUBPATH),
         reject:  /^https?:\/\/gitlab\.[^./]+\.[^./]+\/users\/sign_in/,
         setup: gitlabInstanceSetup,
     },
@@ -227,7 +231,7 @@ export function gitlabInstanceHandler(domainsInput) {
     const alt = domainAlternation(domainsInput);
     return {
         name: "GitLab instance",
-        pattern: new RegExp(`^https?:\\/\\/(${alt})\\/[^/]+\\/[^/]+(\\/[^/]+)*`),
+        pattern: new RegExp(`^https?:\\/\\/(${alt})\\/[^/]+\\/[^/]+` + GITLAB_SUBPATH),
         reject:  new RegExp(`^https?:\\/\\/(${alt})\\/users\\/sign_in`),
         setup: gitlabInstanceSetup,
     };

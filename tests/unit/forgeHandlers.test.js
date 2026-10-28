@@ -72,6 +72,18 @@ describe("forges — flat table", () => {
             const r = setupForge("https://www.minka.gob.ec/mintel/ge/firmaec/firmadigital-libreria", forge);
             expect(r.forgeapiurl).toBe("https://www.minka.gob.ec/api/v4/projects/mintel%2Fge%2Ffirmaec%2Ffirmadigital-libreria");
         });
+
+        test.each([
+            ["https://gitlab.com/org/sub/project/-/tree/main", DEFAULT_FORGES, "https://gitlab.com/api/v4/projects/org%2Fsub%2Fproject"],
+            ["https://gitlab.com/org/sub/a/project", DEFAULT_FORGES, "https://gitlab.com/api/v4/projects/org%2Fsub%2Fa%2Fproject"],
+            ["https://framagit.org/user/project/-/blob/main/README.md", DEFAULT_FORGES, "https://framagit.org/api/v4/projects/user%2Fproject"],
+            ["https://gitlab.example.org/user/project/-/issues/1", DEFAULT_FORGES, "https://gitlab.example.org/api/v4/projects/user%2Fproject"],
+            ["https://www.minka.gob.ec/mintel/ge/firmaec/firmadigital-libreria/-/tree/master", buildForges({ gitlabs: "www.minka.gob.ec" }),
+                "https://www.minka.gob.ec/api/v4/projects/mintel%2Fge%2Ffirmaec%2Ffirmadigital-libreria"],
+        ])("setup stops the project path at /-/ and keeps short groups: %s", (url, list, api) => {
+            const r = setupForge(url, findMatchingForge(url, list));
+            expect(r.forgeapiurl).toBe(api);
+        });
     });
 
     describe("Bitbucket", () => {
