@@ -144,10 +144,11 @@ function injectCustomForge(tabId, url) {
     const origin = `*://${hostname}/*`;
     browser.permissions.contains({ origins: [origin] }, (has) => {
         if (!has) return;
-        // MV3: chrome.scripting.executeScript
+        // scripting exists in MV3 and in Firefox MV2, where chrome.*
+        // returns undefined instead of a promise: use callbacks.
         if (browser.scripting?.executeScript) {
-            browser.scripting.insertCSS({ target: { tabId }, files: ["css/updateswh.css"] }).catch(() => {});
-            browser.scripting.executeScript({ target: { tabId }, files: ["updateswh.js"] }).catch(() => {});
+            browser.scripting.insertCSS({ target: { tabId }, files: ["css/updateswh.css"] }, () => void browser.runtime.lastError);
+            browser.scripting.executeScript({ target: { tabId }, files: ["updateswh.js"] }, () => void browser.runtime.lastError);
             return;
         }
         // MV2: browser.tabs.executeScript / insertCSS
