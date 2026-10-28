@@ -26,6 +26,9 @@
     "url": "https://github.com/rdicosmo/updateswh/issues"
   },
   "homepage": "https://github.com/rdicosmo/updateswh#readme",
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
+  },
   "devDependencies": {
     "@babel/core": "^8.0.9",
     "@babel/preset-env": "^8.0.7",
