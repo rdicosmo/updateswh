@@ -207,7 +207,7 @@ export function findMatchingForge(url, handlers = DEFAULT_FORGES) {
 }
 
 export function setupForge(url, forge) {
-    const projecturl = forge.pattern.exec(url)[0];
+    const projecturl = forge.pattern.exec(url)[0].replace(/[?#].*$/, "");
     return {
         projecturl,
         forgename: forge.name,

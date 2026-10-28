@@ -207,6 +207,17 @@ describe("forges — flat table", () => {
         });
     });
 
+    describe("setupForge", () => {
+        test.each([
+            ["https://github.com/user/repo?tab=readme-ov-file", "https://github.com/user/repo"],
+            ["https://gitlab.com/org/project?ref_type=heads", "https://gitlab.com/org/project"],
+            ["https://framagit.org/user/project#readme", "https://framagit.org/user/project"],
+            ["https://codeberg.org/alice/repo?lang=en#top", "https://codeberg.org/alice/repo"],
+        ])("drops the query and fragment from the project URL: %s", (url, projecturl) => {
+            expect(setupForge(url, findMatchingForge(url)).projecturl).toBe(projecturl);
+        });
+    });
+
     describe("findMatchingForge", () => {
         test("finds GitHub", () => {
             expect(findMatchingForge("https://github.com/user/repo").name).toBe("GitHub");
