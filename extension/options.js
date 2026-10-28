@@ -148,6 +148,10 @@ function buildRow({ domain, typeLabel, originPattern, custom, onDelete }) {
     return row;
 }
 
+// The custom forges as last rendered, so click handlers can call
+// permissions.request before any storage access (see requestPermissions).
+var renderedCustomForges = [];
+
 function renderForgeList() {
     var container = document.getElementById('forge-list');
     container.innerHTML = '';
@@ -164,6 +168,7 @@ function renderForgeList() {
     });
 
     migrateCustomForges(function (customList) {
+        renderedCustomForges = customList;
         var seen = {};
         builtinOrigins.forEach(function (o) { seen[domainFromPattern(o)] = true; });
 
@@ -227,14 +232,12 @@ function updateBulkButton(builtinOrigins, customList) {
 
 function enableAllForges() {
     var builtinOrigins = getOptionalOrigins().filter(function (o) { return o !== '<all_urls>'; });
-    migrateCustomForges(function (customList) {
-        var origins = allForgeOrigins(builtinOrigins, customList);
-        if (!origins.length) { renderForgeList(); return; }
-        requestPermissions(origins, function (granted, error) {
-            if (granted) flashStatus('All forge permissions granted.');
-            else if (error) flashStatus(error);
-            renderForgeList();
-        });
+    var origins = allForgeOrigins(builtinOrigins, renderedCustomForges);
+    if (!origins.length) { renderForgeList(); return; }
+    requestPermissions(origins, function (granted, error) {
+        if (granted) flashStatus('All forge permissions granted.');
+        else if (error) flashStatus(error);
+        renderForgeList();
     });
 }
 
@@ -320,14 +323,13 @@ function showImportPreview(imported) {
 function commitImport() {
     if (!pendingImport) return;
     var imported = pendingImport;
-    migrateCustomForges(function (current) {
-        var byDomain = {};
-        current.forEach(function (f) { byDomain[f.domain] = f; });
-        imported.forEach(function (f) { if (!byDomain[f.domain]) byDomain[f.domain] = f; });
-        var merged = Object.keys(byDomain).map(function (d) { return byDomain[d]; });
-        var origins = imported.map(function (f) { return patternFromDomain(f.domain); });
-
-        requestPermissions(origins, function (granted, error) {
+    var origins = imported.map(function (f) { return patternFromDomain(f.domain); });
+    requestPermissions(origins, function (granted, error) {
+        migrateCustomForges(function (current) {
+            var byDomain = {};
+            current.forEach(function (f) { byDomain[f.domain] = f; });
+            imported.forEach(function (f) { if (!byDomain[f.domain]) byDomain[f.domain] = f; });
+            var merged = Object.keys(byDomain).map(function (d) { return byDomain[d]; });
             // Always store the merged list — denied entries stay in the list
             // with slider OFF so the user can retry later.
             writeCustomForges(merged, function () {
@@ -403,19 +405,17 @@ function addCustomForge(rawDomain, type) {
         flashStatus('Please enter a valid domain (e.g. git.example.org).');
         return;
     }
-    migrateCustomForges(function (current) {
-        if (current.some(function (f) { return f.domain === domain; })) {
-            flashStatus(domain + ' is already in the list.');
+    // If the user denies, don't add the entry — the options page is
+    // already open, so there's no point in persisting an off-slider row
+    // the way the import flow does.
+    requestPermissions([patternFromDomain(domain)], function (granted, error) {
+        if (!granted) {
+            flashStatus(error || 'Permission denied for ' + domain + '.');
             return;
         }
-        var origin = patternFromDomain(domain);
-        // Request permission *inside* the click gesture.  If the user
-        // denies, don't add the entry — the options page is already open,
-        // so there's no point in persisting an off-slider row the way the
-        // import flow does.
-        requestPermissions([origin], function (granted, error) {
-            if (!granted) {
-                flashStatus(error || 'Permission denied for ' + domain + '.');
+        migrateCustomForges(function (current) {
+            if (current.some(function (f) { return f.domain === domain; })) {
+                flashStatus(domain + ' is already in the list.');
                 return;
             }
             var next = current.concat([{ domain: domain, type: type }]);
@@ -444,7 +444,9 @@ function wireAddCustom() {
 /* ── Status helper ── */
 
 // Calls back with (granted, error): error is the browser's reason when
-// the request failed rather than being declined by the user.
+// the request failed rather than being declined by the user.  Firefox
+// honours permissions.request only when it runs synchronously inside a
+// click handler, so callers must not reach it through a storage callback.
 function requestPermissions(origins, cb) {
     browser.permissions.request({ origins: origins }, function (granted) {
         var err = browser.runtime.lastError;
