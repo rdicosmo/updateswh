@@ -100,9 +100,10 @@ function buildSlider(originPattern, onToggle) {
 
     cb.addEventListener('change', function () {
         if (cb.checked) {
-            browser.permissions.request({ origins: [originPattern] }, function (granted) {
-                cb.checked = !!granted;
-                if (onToggle) onToggle(!!granted);
+            requestPermissions([originPattern], function (granted, error) {
+                cb.checked = granted;
+                if (error) flashStatus(error);
+                if (onToggle) onToggle(granted);
             });
         } else {
             browser.permissions.remove({ origins: [originPattern] }, function () {
@@ -229,8 +230,9 @@ function enableAllForges() {
     migrateCustomForges(function (customList) {
         var origins = allForgeOrigins(builtinOrigins, customList);
         if (!origins.length) { renderForgeList(); return; }
-        browser.permissions.request({ origins: origins }, function (granted) {
+        requestPermissions(origins, function (granted, error) {
             if (granted) flashStatus('All forge permissions granted.');
+            else if (error) flashStatus(error);
             renderForgeList();
         });
     });
@@ -325,7 +327,7 @@ function commitImport() {
         var merged = Object.keys(byDomain).map(function (d) { return byDomain[d]; });
         var origins = imported.map(function (f) { return patternFromDomain(f.domain); });
 
-        browser.permissions.request({ origins: origins }, function (granted) {
+        requestPermissions(origins, function (granted, error) {
             // Always store the merged list — denied entries stay in the list
             // with slider OFF so the user can retry later.
             writeCustomForges(merged, function () {
@@ -333,7 +335,8 @@ function commitImport() {
                 document.getElementById('import-preview').innerHTML = '';
                 flashStatus(granted
                     ? 'Imported ' + imported.length + ' forge(s); permissions granted.'
-                    : 'Imported ' + imported.length + ' forge(s); permissions not granted — toggle each slider to retry.');
+                    : 'Imported ' + imported.length + ' forge(s); permissions not granted' +
+                      (error ? ' (' + error + ')' : '') + ' — toggle each slider to retry.');
                 renderForgeList();
             });
         });
@@ -410,9 +413,9 @@ function addCustomForge(rawDomain, type) {
         // denies, don't add the entry — the options page is already open,
         // so there's no point in persisting an off-slider row the way the
         // import flow does.
-        browser.permissions.request({ origins: [origin] }, function (granted) {
+        requestPermissions([origin], function (granted, error) {
             if (!granted) {
-                flashStatus('Permission denied for ' + domain + '.');
+                flashStatus(error || 'Permission denied for ' + domain + '.');
                 return;
             }
             var next = current.concat([{ domain: domain, type: type }]);
@@ -439,6 +442,15 @@ function wireAddCustom() {
 }
 
 /* ── Status helper ── */
+
+// Calls back with (granted, error): error is the browser's reason when
+// the request failed rather than being declined by the user.
+function requestPermissions(origins, cb) {
+    browser.permissions.request({ origins: origins }, function (granted) {
+        var err = browser.runtime.lastError;
+        cb(!!granted, err ? 'Permission request failed: ' + err.message : null);
+    });
+}
 
 function flashStatus(msg, ms) {
     var status = document.getElementById('status');
