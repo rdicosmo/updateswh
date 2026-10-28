@@ -63,8 +63,7 @@ jobs:
           Package: *
           Pin: origin packages.mozilla.org
           Pin-Priority: 1000
-          EOF
-          sudo tee /etc/apt/preferences.d/mozilla > /dev/null << EOF
+
           Package: firefox
           Pin: release o=Ubuntu
           Pin-Priority: -1
