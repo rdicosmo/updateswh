@@ -94,6 +94,8 @@ tests/
   e2e/                  headless Chromium end-to-end: mock server +
                         puppeteer harness + 18 scenarios (live smoke gated
                         behind E2E_LIVE=1)
+  e2e-firefox/          Firefox ESR end-to-end on the MV2 build: proxy +
+                        BiDi harness, options-page permission flows
 .github/workflows/
   ci.yml                two-tier CI: unit first, e2e after
 ```
@@ -289,6 +291,15 @@ Chromium:
 Run them with `npm run test:e2e` (or `make e2e`). Live smoke is
 opt-in behind `E2E_LIVE=1`.
 
+`tests/e2e-firefox/` loads the Firefox MV2 build into Firefox ESR over
+WebDriver BiDi and drives the options page with real clicks. Firefox
+honours `permissions.request` only inside a user-input handler, which
+Chromium does not enforce the same way, so permission flows need this
+tier. A local proxy (`server.js`) serves a fixture forge over http and
+refuses every https connection, so nothing reaches the network. Run it
+with `npm run test:e2e:firefox` (or `make e2e-firefox`); set
+`FIREFOX_BIN` if Firefox ESR is not at `/usr/bin/firefox-esr`.
+
 For a new forge, at minimum: add matching / rejection / setup cases to
 `forgeHandlers.test.js`. An e2e scenario is welcome but not required —
 the mocked archival-states suite exercises every colour branch through
@@ -303,6 +314,7 @@ npm run test:e2e            # jest + puppeteer-core (real Chromium) — 18 scena
 npm run build               # produces extension/updateswh.js + manifests
 make                        # build + package FireFox.zip / Chrome.zip / Edge.zip
 make e2e                    # alias for npm run test:e2e
+npm run test:e2e:firefox    # Firefox ESR, options-page permission flows
 ```
 
 The Vite bundle is ~27 KB (no jQuery).
@@ -348,8 +360,9 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    ```
    unzip -p FireFox.zip manifest.json | grep -A2 browser_specific_settings
    ```
-4. `npm test && npm run test:e2e` — 102 unit tests + 18 e2e scenarios must
-   stay green.
+4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 102 unit
+   tests, 18 Chromium e2e scenarios and 7 Firefox scenarios must stay
+   green.
 5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
 6. Push `main` and the tag: `git push origin main vX.Y.Z`.
 7. Upload the three zips to the three store dashboards (see

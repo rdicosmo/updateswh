@@ -13,7 +13,8 @@
     "dev": "vite build --watch",
     "lint": "eslint src/**/*.js extension/**/*.js",
     "test:chrome": "npm run build && node --experimental-vm-modules node_modules/.bin/jest --config tests/integration/jest.config.js",
-    "test:e2e": "npm run build && node --experimental-vm-modules node_modules/.bin/jest --config tests/e2e/jest.config.js"
+    "test:e2e": "npm run build && node --experimental-vm-modules node_modules/.bin/jest --config tests/e2e/jest.config.js",
+    "test:e2e:firefox": "npm run build && node --experimental-vm-modules node_modules/.bin/jest --config tests/e2e-firefox/jest.config.js"
   },
   "repository": {
     "type": "git",

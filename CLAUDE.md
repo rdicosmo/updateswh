@@ -77,6 +77,8 @@ npm install
 npm test                # jest + jsdom; 88 tests across cache, navigation,
                         #   forges, dateUtils, permissions, UI,
                         #   swhResponse, swhApi
+npm run test:e2e        # headless Chromium, mocked forge + SWH
+npm run test:e2e:firefox  # Firefox ESR, real clicks on the options page
 npm run build           # vite + manifest-generator
 make                    # build + zip for Firefox / Chrome / Edge / Safari
 ```

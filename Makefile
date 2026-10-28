@@ -1,4 +1,4 @@
-.PHONY: clean all build test test-chrome e2e
+.PHONY: clean all build test test-chrome e2e e2e-firefox
 
 # Firefox gets the MV2 manifest today (manifest.json), Chrome/Edge get MV3
 # (manifest-v3.json renamed to manifest.json in-zip). Safari.zip is the
@@ -57,3 +57,8 @@ test-chrome:
 # Run on PRs and before release, not on every local edit.
 e2e:
 	npm run test:e2e
+
+# Firefox tier: real Firefox ESR on the MV2 build, options-page permission
+# flows driven by real clicks. Set FIREFOX_BIN if not /usr/bin/firefox-esr.
+e2e-firefox:
+	npm run test:e2e:firefox
