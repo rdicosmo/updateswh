@@ -71,6 +71,8 @@ async function computeResults(url, forges, settings) {
         // A visit is currently in flight (just scheduled / being fetched).
         // Don't mark it as failed — the outcome isn't known yet.
         results.color = COLOR_CODES.PENDING_VISIT;
+        const archived = await fetchSwhLatestVisit(projecturl, { swhtoken: settings.swhtoken, requireSnapshot: true });
+        if (archived.ok) results.archivedlastupdate = archived.data.date;
     } else if (swhResult.data.status !== "full") {
         results.color = COLOR_CODES.FAILED_UPDATE;
     } else if (isArchiveUpToDate(results.forgelastupdate, results.swhlastupdate)) {

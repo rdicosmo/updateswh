@@ -108,4 +108,34 @@ describe("save icon — PENDING_VISIT state", () => {
             "https://archive.softwareheritage.org/save/list/",
         );
     });
+
+    const rightClick = (btn) => btn.dispatchEvent(new MouseEvent("mousedown", { button: 2, bubbles: true }));
+
+    test("right click opens the last archival when one exists", () => {
+        ui.insertSaveIcon({
+            color: "lightgreen",
+            projecturl: "https://github.com/u/r",
+            swhlastupdate:      "2026-04-24T12:00:00+00:00",
+            archivedlastupdate: "2026-03-01T08:00:00+00:00",
+        });
+        const btn = document.querySelector(".swh-save-button");
+        expect(btn.getAttribute("title")).toMatch(/Right click to view last archival \(2026-03-01\)/);
+        rightClick(btn);
+        expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
+            type: "createtab",
+            url: "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=https://github.com/u/r",
+        });
+    });
+
+    test("no right click on a first archival still in progress", () => {
+        ui.insertSaveIcon({
+            color: "lightgreen",
+            projecturl: "https://github.com/u/r",
+            swhlastupdate: "2026-04-24T12:00:00+00:00",
+        });
+        const btn = document.querySelector(".swh-save-button");
+        expect(btn.getAttribute("title")).not.toMatch(/right click/i);
+        rightClick(btn);
+        expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+    });
 });

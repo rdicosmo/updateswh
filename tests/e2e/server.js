@@ -11,6 +11,7 @@
  *       GET /forge/github/repos/<user>/<repo> → JSON { pushed_at }
  *   - SWH API stubs:
  *       GET  /swh/origin/<origin_url>/visit/latest/ → JSON { status, date, ... }
+ *       GET  ...visit/latest/?require_snapshot=true → swhSnapshotVisit
  *       POST /swh/origin/save/git/url/<origin>/     → JSON { save_request_status }
  *
  * The scenario object controls response behaviour:
@@ -18,6 +19,7 @@
  *   {
  *     forge: { pushed_at: "2026-01-01T00:00:00Z" },
  *     swhVisit: { status: 200, body: { status:"full", date:"2026-04-01T..." } },
+ *     swhSnapshotVisit: { status: 404 },   // no earlier archived copy
  *     swhSave:  { status: 200, body: { save_request_status:"accepted", ... } },
  *   }
  *
@@ -42,7 +44,8 @@ export function createMockServer() {
             return serveForgeGithub(res, scenario.forge);
         }
         if (path.startsWith("/swh/origin/") && path.endsWith("/visit/latest/")) {
-            return serveSwh(res, scenario.swhVisit);
+            const snapshotOnly = url.searchParams.has("require_snapshot");
+            return serveSwh(res, snapshotOnly ? scenario.swhSnapshotVisit : scenario.swhVisit);
         }
         if (path.startsWith("/swh/origin/save/")) {
             return serveSwh(res, scenario.swhSave);
@@ -80,6 +83,7 @@ function defaultScenario() {
                 type: "git-checkout",
             },
         },
+        swhSnapshotVisit: { status: 404, body: { exception: "NotFoundExc" } },
         swhSave: {
             status: 200,
             body: {

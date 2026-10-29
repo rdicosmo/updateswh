@@ -90,9 +90,9 @@ build/
   firefox-gecko.json    Firefox-only gecko.id + data_collection_permissions,
                         merged into the Firefox MV2 zip by the Makefile
 tests/
-  unit/                 jest tests (jsdom), 114 tests
+  unit/                 jest tests (jsdom), 117 tests
   e2e/                  headless Chromium end-to-end: mock server +
-                        puppeteer harness + 18 scenarios (live smoke gated
+                        puppeteer harness + 19 scenarios (live smoke gated
                         behind E2E_LIVE=1)
   e2e-firefox/          Firefox end-to-end on the MV2 build: proxy +
                         BiDi harness, options-page permission flows
@@ -310,8 +310,8 @@ the forge agnostic code path.
 
 ```
 npm install
-npm test                    # jest (jsdom), 114 tests
-npm run test:e2e            # jest + puppeteer-core (real Chromium) — 18 scenarios
+npm test                    # jest (jsdom), 117 tests
+npm run test:e2e            # jest + puppeteer-core (real Chromium) — 19 scenarios
 npm run build               # produces extension/updateswh.js + manifests
 make                        # build + package FireFox.zip / Chrome.zip / Edge.zip
 make e2e                    # alias for npm run test:e2e
@@ -362,8 +362,8 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    ```
    unzip -p FireFox.zip manifest.json | grep -A2 browser_specific_settings
    ```
-4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 114 unit
-   tests, 18 Chromium e2e scenarios and 7 Firefox scenarios must stay
+4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 117 unit
+   tests, 19 Chromium e2e scenarios and 7 Firefox scenarios must stay
    green.
 5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
 6. Push `main` and the tag: `git push origin main vX.Y.Z`.

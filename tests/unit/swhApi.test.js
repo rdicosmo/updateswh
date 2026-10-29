@@ -60,6 +60,17 @@ describe("fetchSwhLatestVisit — challenge detection", () => {
         expect(out).toEqual({ ok: true, data: { date: "2026-01-01", status: "full" } });
     });
 
+    test("requireSnapshot asks for the latest visit with a snapshot", async () => {
+        stubRuntime({ response: { success: true, data: {} } });
+        await fetchSwhLatestVisit("https://github.com/a/b");
+        await fetchSwhLatestVisit("https://github.com/a/b", { requireSnapshot: true });
+        const urls = global.chrome.runtime.sendMessage.mock.calls.map(([msg]) => msg.url);
+        expect(urls).toEqual([
+            "https://archive.softwareheritage.org/api/1/origin/https://github.com/a/b/visit/latest/",
+            "https://archive.softwareheritage.org/api/1/origin/https://github.com/a/b/visit/latest/?require_snapshot=true",
+        ]);
+    });
+
     test("challenge kind → errorType SWH_UNREACHABLE", async () => {
         stubRuntime({ response: { success: false, kind: "challenge", status: 200, error: "Non-JSON response" } });
         const out = await fetchSwhLatestVisit("https://github.com/a/b");

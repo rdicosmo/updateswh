@@ -213,11 +213,14 @@ export function insertSaveIcon(results, settings = {}) {
     }
 
     if (color === COLOR_CODES.PENDING_VISIT) {
+        const archivedDay = dayOf(results.archivedlastupdate);
         btn.setAttribute(
             "title",
-            `Archival in progress.\nLatest visit recorded on ${swhDay || "(unknown)"}.\nCheck back in a few minutes.\nClick to open the save queue.`,
+            `Archival in progress.\nLatest visit recorded on ${swhDay || "(unknown)"}.\nCheck back in a few minutes.\nClick to open the save queue.` +
+                (archivedDay ? `\nRight click to view last archival (${archivedDay})` : ""),
         );
         wrapInAnchor(btn, SWH_SAVE_LIST_URL);
+        if (archivedDay) onRightClickOpenArchive(btn, projecturl);
         return;
     }
 

@@ -45,8 +45,10 @@ function responseToSwhError(response, error) {
     return { ok: false, errorType: COLOR_CODES.NOT_ARCHIVED, status, error: response?.error || error };
 }
 
-export async function fetchSwhLatestVisit(projecturl, { swhtoken } = {}) {
-    const url = SWH_ORIGIN_VISIT_URL + projecturl + "/visit/latest/";
+// With requireSnapshot, returns the latest visit that produced a snapshot,
+// i.e. the latest archived copy, skipping visits still in flight.
+export async function fetchSwhLatestVisit(projecturl, { swhtoken, requireSnapshot = false } = {}) {
+    const url = SWH_ORIGIN_VISIT_URL + projecturl + "/visit/latest/" + (requireSnapshot ? "?require_snapshot=true" : "");
     const headers = swhtoken ? { Authorization: `Bearer ${swhtoken}` } : {};
     try {
         const response = await sendMessageWithTimeout({ type: "FETCH_SWH_API", url, method: "GET", headers });

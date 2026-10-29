@@ -235,7 +235,8 @@ export function defaultRules(mockBase, { user = "u", repo = "r", forge = "github
             handler: async (req) => {
                 const isSave = req.url.includes("/save/");
                 const mockPath = isSave ? "/swh/origin/save/" : "/swh/origin/visit/latest/";
-                return proxy(`${mockBase}${mockPath}`, { method: isSave ? "POST" : "GET" });
+                const query = isSave ? "" : new URL(req.url).search;
+                return proxy(`${mockBase}${mockPath}${query}`, { method: isSave ? "POST" : "GET" });
             },
         },
     ];

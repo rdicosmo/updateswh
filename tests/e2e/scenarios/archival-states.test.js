@@ -95,8 +95,19 @@ describe("E2E archival states", () => {
             });
             await waitForButtonColor(ctx.page, "lightgreen");
             expect(await tooltip()).toMatch(/archival in progress/i);
+            expect(await tooltip()).not.toMatch(/right click/i);
         },
     );
+
+    test("lightgreen with an earlier archival offers it on right click", async () => {
+        await navigate({
+            forge: { status: 200, body: { pushed_at: FORGE_PUSHED_AT } },
+            swhVisit: { status: 200, body: visit({ status: "ongoing", snapshot: null }) },
+            swhSnapshotVisit: { status: 200, body: visit({ date: VISIT_DATE_EARLY }) },
+        });
+        await waitForButtonColor(ctx.page, "lightgreen");
+        expect(await tooltip()).toMatch(/Right click to view last archival \(2025-06-01\)/);
+    });
 
     test("grey: origin not archived (SWH 404)", async () => {
         await navigate({

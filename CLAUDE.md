@@ -74,7 +74,7 @@ grant button is shown instead.
 
 ```
 npm install
-npm test                # jest + jsdom; 114 tests across cache, navigation,
+npm test                # jest + jsdom; 117 tests across cache, navigation,
                         #   forges, customForges, dateUtils, permissions,
                         #   UI, swhResponse, swhApi
 npm run test:e2e        # headless Chromium, mocked forge + SWH
