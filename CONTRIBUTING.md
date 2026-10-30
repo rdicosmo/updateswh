@@ -367,5 +367,21 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    green.
 5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
 6. Push `main` and the tag: `git push origin main vX.Y.Z`.
-7. Upload the three zips to the three store dashboards (see
-   `HOWTO-RELEASE` for login URLs and account bindings).
+7. Upload to the stores, either by hand (the three zips to the three
+   store dashboards, see `HOWTO-RELEASE` for login URLs and account
+   bindings) or with the **Release** workflow
+   (`.github/workflows/release.yml`): in the Actions tab, run it on the
+   tag `vX.Y.Z`, then approve the upload jobs. It refuses a ref other
+   than the tag of the manifest version, rebuilds and tests the tag,
+   uploads drafts to Chrome and Edge (publish them from the consoles),
+   and submits to Firefox AMO with a source archive; AMO publishes the
+   version once its review passes. Safari is released by hand.
+
+The Release workflow needs a GitHub environment named `stores`, with the
+project owner as required reviewer, holding these secrets:
+`CHROME_PUBLISHER_ID`, `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`,
+`CHROME_REFRESH_TOKEN` (Chrome Web Store API; the Google Cloud OAuth
+consent screen must be "In production", or the refresh token expires
+after 7 days), `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID`, `EDGE_API_KEY`
+(Partner Center, Publish API v1.1; the key has an expiry date),
+`FIREFOX_JWT_ISSUER`, `FIREFOX_JWT_SECRET` (AMO API key).

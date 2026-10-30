@@ -1,0 +1,128 @@
+name: Release
+
+# Uploads a tagged version to the Chrome, Edge and Firefox stores.
+#
+# Run it by hand from the Actions tab, choosing the release tag (v0.9.3,
+# ...) as the ref. The upload jobs use the "stores" environment, which
+# holds the store credentials and waits for its required reviewer to
+# approve. Chrome and Edge receive a draft, published from their
+# consoles; the Firefox upload is a listed submission, which AMO
+# publishes once its review passes. Safari is released by hand.
+
+on:
+  workflow_dispatch:
+    inputs:
+      chrome:
+        description: Upload to the Chrome Web Store (draft)
+        type: boolean
+        default: true
+      edge:
+        description: Upload to Microsoft Edge Add-ons (draft)
+        type: boolean
+        default: true
+      firefox:
+        description: Submit to Firefox AMO (published after review)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build and test the tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the ref is the tag of the manifest version
+        run: |
+          version=$(jq -r .version src/manifest-base.json)
+          if [ "$GITHUB_REF_TYPE" != tag ] || [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Run this from tag v$version, not $GITHUB_REF_TYPE $GITHUB_REF_NAME."
+            exit 1
+          fi
+          if [ "$(jq -r .version package.json)" != "$version" ]; then
+            echo "::error::package.json and src/manifest-base.json disagree on the version."
+            exit 1
+          fi
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - run: npm install
+      - run: npm test
+      - run: make
+      # AMO reviewers rebuild the bundled updateswh.js from source, so the
+      # archive carries the lockfile this build resolved.
+      - name: Source archive for AMO
+        run: |
+          git archive --format=zip -o source.zip HEAD
+          zip source.zip package-lock.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: |
+            Chrome.zip
+            Edge.zip
+            FireFox.zip
+            source.zip
+          if-no-files-found: error
+
+  chrome:
+    name: upload to Chrome Web Store
+    if: inputs.chrome
+    needs: build
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+      - uses: wdzeng/chrome-extension@37f4f9cdc664959bafef36b1f4da03dec5141620 # v2.0.0
+        with:
+          action: upload
+          extension-id: palihjnakafgffnompkdfgbgdbcagbko
+          zip-path: Chrome.zip
+          publisher-id: ${{ secrets.CHROME_PUBLISHER_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+  edge:
+    name: upload to Edge Add-ons
+    if: inputs.edge
+    needs: build
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+      - uses: wdzeng/edge-addon@9881f57720358040d079eaa06a4596dc9c273eb6 # v2.1.1
+        with:
+          upload-only: true
+          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
+          zip-path: Edge.zip
+          api-key: ${{ secrets.EDGE_API_KEY }}
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+
+  firefox:
+    name: submit to Firefox AMO
+    if: inputs.firefox
+    needs: build
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+      - uses: wdzeng/firefox-addon@3184ee491b500e080885e046051366a4228c6e5d # v1.2.1
+        with:
+          addon-guid: "{157eb9f0-9814-4fcc-b0b7-586b3093c641}"
+          xpi-path: FireFox.zip
+          source-file-path: source.zip
+          approval-notes: >-
+            Built with Node 26: npm ci && make (needs jq and zip).
+            FireFox.zip is the uploaded file; extension/updateswh.js is
+            bundled by vite from src/, unminified.
+          jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
