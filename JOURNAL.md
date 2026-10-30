@@ -374,3 +374,27 @@ release builds) and an Apple Developer Program membership ($99/yr,
 required for any distribution channel — App Store or notarized
 direct download). Plan and open questions in LEAN_REWRITE_PLAN.md
 § "Safari port (2026-06-11)".
+
+## 2026-10-30 — v0.9.3: Firefox custom forges, light-green right click, release workflow
+
+**Firefox custom forges (#26).** Custom Gitea/GitLab instances got no
+button on Firefox. Under MV2, Firefox exposes `scripting` but its
+`chrome.*` calls return undefined instead of a promise, so the
+injection's `.catch` threw. Fixed with callbacks, keeping MV2 so
+users on older Firefox versions keep the extension. A second bug in
+the options page called `permissions.request` after a storage
+callback, outside the click, which Firefox refuses. Neither showed in
+the unit stubs or in Chromium; the new Firefox e2e suite (7 real-click
+scenarios) catches both and runs in CI.
+
+**Light green right click (#25).** Since in-flight visits turned light
+green instead of brown, right click on them was lost, which hurt busy
+projects whose visits run long. A light-green button now looks up the
+latest visit with a snapshot and offers it on right click.
+
+**Release workflow.** `.github/workflows/release.yml`, run by hand on
+a tag, after approval on the `stores` environment: drafts on Chrome
+and Edge, a listed AMO submission with a source archive. The archive
+carries the lockfile; rebuilding from it gives a byte-identical
+`updateswh.js`. Tag-triggered publishing waits for one clean manual
+run.

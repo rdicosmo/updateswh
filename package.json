@@ -1,6 +1,6 @@
 {
   "name": "updateswh",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "updateswh",
   "main": "updateswh.js",
   "type": "module",
