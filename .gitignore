@@ -14,4 +14,5 @@ extension/manifest-v3.json
 .#*
 *~
 extension-firefox-build/
+extension-edge-build/
 updateswh-e2e-*

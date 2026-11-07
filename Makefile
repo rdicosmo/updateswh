@@ -7,7 +7,9 @@
 # Safari runs a non-persistent event page (Safari's background SW
 # cannot do cross-origin fetch, so the event page is required for the
 # SWH proxy). Feed Safari.zip (or extension/) to
-# `xcrun safari-web-extension-converter` on a Mac. The Firefox-only
+# `xcrun safari-web-extension-converter` on a Mac. Edge.zip drops
+# background.scripts: Edge's store validation rejects that key in an MV3
+# manifest, where Chrome's accepts it. The Firefox-only
 # identifying block (AMO gecko.id + data_collection_permissions) lives in
 # build/firefox-gecko.json and is merged into the Firefox manifest at zip
 # time, inside a throwaway temp dir so the main extension/ tree stays
@@ -17,6 +19,7 @@
 
 FF_BUILD_DIR := extension-firefox-build
 FF_MANIFEST  := manifest.json
+EDGE_BUILD_DIR := extension-edge-build
 
 all: clean build
 	printf "Preparing FireFox.zip\n"
@@ -31,8 +34,14 @@ all: clean build
 	(cd extension; zip -r ../Chrome.zip . -x manifest.json)
 	printf "Use manifest v3 in Chrome.zip\n"
 	printf "@ manifest-v3.json\n@=manifest.json\n" | zipnote -w Chrome.zip
-	printf "Preparing Edge.zip (just a copy of Chrome.zip)\n"
-	cp Chrome.zip Edge.zip
+	printf "Preparing Edge.zip (Chrome.zip without background.scripts)\n"
+	rm -rf $(EDGE_BUILD_DIR)
+	mkdir -p $(EDGE_BUILD_DIR)
+	cp -r extension/* $(EDGE_BUILD_DIR)/
+	rm -f $(EDGE_BUILD_DIR)/manifest.json $(EDGE_BUILD_DIR)/manifest-v3.json
+	jq 'del(.background.scripts)' extension/manifest-v3.json > $(EDGE_BUILD_DIR)/manifest.json
+	(cd $(EDGE_BUILD_DIR); zip -r ../Edge.zip .)
+	rm -rf $(EDGE_BUILD_DIR)
 	printf "Preparing Safari.zip (just a copy of Chrome.zip)\n"
 	cp Chrome.zip Safari.zip
 
@@ -41,7 +50,7 @@ build:
 
 clean:
 	rm -f FireFox.zip Chrome.zip Edge.zip Safari.zip
-	rm -rf $(FF_BUILD_DIR)
+	rm -rf $(FF_BUILD_DIR) $(EDGE_BUILD_DIR)
 	rm -f extension/updateswh.js extension/manifest.json extension/manifest-v3.json
 
 # Fast unit tier: jest + jsdom, no browser. Default check on every change.
