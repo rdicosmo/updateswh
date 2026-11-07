@@ -8,6 +8,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "check:store": "node build/check-store-text.js",
     "build:manifest": "node build/manifest-generator.js",
     "build": "npm run build:manifest && vite build",
     "dev": "vite build --watch",
