@@ -11,8 +11,6 @@ A coloured button on the right edge of a repository page shows its archival stat
 - red: the forge API request failed, for example on a private repository.
 - blue: the archive could not be reached. Click to open archive.softwareheritage.org and check.
 
-Built-in forges: GitHub, Bitbucket, GitLab.com, Gitee, Pagure; the GitLab instances 0xacab.org, gite.lirmm.fr, framagit.org and gricad-gitlab.univ-grenoble-alpes.fr; the Gitea instances git.rampin.org, repo.radio and git.fsfe.org; the Forgejo instances codeberg.org, git.disroot.org and git.minetest.land.
-
-Other GitLab, Gitea and Forgejo instances can be added on the options page. Access to each forge is asked for at run time, not at install: the options page opens on first install and grants access to all built-in forges with one button.
+It works on GitHub, GitLab.com and Bitbucket, and on a set of public GitLab, Gitea and Forgejo instances listed on the options page. Other instances can be added there. Access to each forge is asked for when it is first needed, not at install: the options page opens on first install and grants access to all built-in forges with one button.
 
 More information: https://www.softwareheritage.org/browser-extensions/
