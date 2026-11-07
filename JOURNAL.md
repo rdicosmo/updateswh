@@ -398,3 +398,25 @@ and Edge, a listed AMO submission with a source archive. The archive
 carries the lockfile; rebuilding from it gives a byte-identical
 `updateswh.js`. Tag-triggered publishing waits for one clean manual
 run.
+
+---
+
+## 2026-11-07 - Store listing text in the repo
+
+**What happened.** The store descriptions were kept only in the store
+consoles, where nothing tied them to the code: since 0.9.0, for
+instance, wildcard GitLab and Gitea instances need adding on the
+options page. The listing now lives in `store/`: one description, one summary, release notes per
+version. The Release workflow refuses a tag without notes, sets the
+AMO listing through the AMO API (`build/amo-metadata.js`, no
+dependencies, `--dry-run`), and prints the text in the run summary for
+Chrome and Edge, whose APIs have no listing endpoint.
+
+**Lessons.**
+1. The pinned upload action creates the AMO version before it returns
+   (its bundled code awaits the version POST), so the release notes
+   PATCH can follow it directly; a bounded retry on 404 covers the case
+   anyway. Read the action's code, not only its `action.yml`: the
+   bundle also reads an undeclared `release-notes` input.
+2. Each test was checked against a deliberately broken script (12
+   mutations, all caught) before being trusted.

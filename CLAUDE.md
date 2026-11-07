@@ -74,14 +74,19 @@ grant button is shown instead.
 
 ```
 npm install
-npm test                # jest + jsdom; 117 tests across cache, navigation,
+npm test                # jest + jsdom; 137 tests across cache, navigation,
                         #   forges, customForges, dateUtils, permissions,
-                        #   UI, swhResponse, swhApi
+                        #   UI, swhResponse, swhApi, storeText, amoMetadata
 npm run test:e2e        # headless Chromium, mocked forge + SWH
 npm run test:e2e:firefox  # Firefox ESR, real clicks on the options page
 npm run build           # vite + manifest-generator
 make                    # build + zip for Firefox / Chrome / Edge / Safari
 ```
+
+Store listing text lives in `store/` (description, summary,
+`notes/X.Y.Z.txt`). `build/check-store-text.js` checks it;
+`build/amo-metadata.js` pushes it to AMO from the Release workflow.
+Chrome and Edge have no listing API: the workflow prints the text.
 
 `src/manifest-base.json` is the single source of truth for both MV2 and MV3.
 `build/manifest-generator.js` emits `extension/manifest.json` (MV2) and

@@ -89,8 +89,14 @@ build/
   manifest-generator.js MV2 + MV3 manifests from src/manifest-base.json
   firefox-gecko.json    Firefox-only gecko.id + data_collection_permissions,
                         merged into the Firefox MV2 zip by the Makefile
+  check-store-text.js   checks store/ before a release (npm run check:store)
+  amo-metadata.js       sets the AMO listing and release notes from store/
+store/
+  description.txt       long description, the same on every store
+  summary.txt           one-line summary, at most 132 characters (Chrome)
+  notes/X.Y.Z.txt       user-facing release notes of each version
 tests/
-  unit/                 jest tests (jsdom), 117 tests
+  unit/                 jest tests (jsdom), 137 tests
   e2e/                  headless Chromium end-to-end: mock server +
                         puppeteer harness + 19 scenarios (live smoke gated
                         behind E2E_LIVE=1)
@@ -98,6 +104,7 @@ tests/
                         BiDi harness, options-page permission flows
 .github/workflows/
   ci.yml                CI: unit first, then Chromium and Firefox e2e
+  release.yml           manual upload of a tag to the stores
 ```
 
 ## Colour codes
@@ -310,7 +317,7 @@ the forge agnostic code path.
 
 ```
 npm install
-npm test                    # jest (jsdom), 117 tests
+npm test                    # jest (jsdom), 137 tests
 npm run test:e2e            # jest + puppeteer-core (real Chromium) — 19 scenarios
 npm run build               # produces extension/updateswh.js + manifests
 make                        # build + package FireFox.zip / Chrome.zip / Edge.zip
@@ -362,12 +369,16 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    ```
    unzip -p FireFox.zip manifest.json | grep -A2 browser_specific_settings
    ```
-4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 117 unit
+4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 137 unit
    tests, 19 Chromium e2e scenarios and 7 Firefox scenarios must stay
    green.
-5. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
-6. Push `main` and the tag: `git push origin main vX.Y.Z`.
-7. Upload to the stores, either by hand (the three zips to the three
+5. Write the release notes in `store/notes/X.Y.Z.txt`: one or two
+   user-facing lines. Update `store/description.txt` and
+   `store/summary.txt` if the extension changed. `npm run check:store`
+   checks them; the Release workflow refuses a tag without notes.
+6. Commit: `Bump version to X.Y.Z`. Tag: `git tag vX.Y.Z`.
+7. Push `main` and the tag: `git push origin main vX.Y.Z`.
+8. Upload to the stores, either by hand (the three zips to the three
    store dashboards, see `HOWTO-RELEASE` for login URLs and account
    bindings) or with the **Release** workflow
    (`.github/workflows/release.yml`): in the Actions tab, run it on the
@@ -376,6 +387,12 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    uploads drafts to Chrome and Edge (publish them from the consoles),
    and submits to Firefox AMO with a source archive; AMO publishes the
    version once its review passes. Safari is released by hand.
+9. Listing text. The Firefox job sets the AMO description, summary and
+   release notes from `store/` through the AMO API
+   (`build/amo-metadata.js`; `--dry-run` prints the requests without
+   sending them). The Chrome and Edge APIs cannot edit a listing, so
+   their jobs print the description and release notes in the run
+   summary: paste them into each console before submitting the draft.
 
 The Release workflow needs a GitHub environment named `stores`, with the
 project owner as required reviewer, holding these secrets:
