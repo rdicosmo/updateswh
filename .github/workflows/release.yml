@@ -174,7 +174,19 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: release
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      # AMO accepts a version number once. When a re-run finds the version
+      # already there, the upload is skipped and only the listing is set.
+      - name: Check whether AMO already has this version
+        id: amo
+        run: node build/amo-metadata.js --check-version --version "${GITHUB_REF_NAME#v}"
+        env:
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
       - uses: wdzeng/firefox-addon@3184ee491b500e080885e046051366a4228c6e5d # v1.2.1
+        if: steps.amo.outputs.exists == 'false'
         with:
           addon-guid: "{157eb9f0-9814-4fcc-b0b7-586b3093c641}"
           xpi-path: FireFox.zip
@@ -187,9 +199,6 @@ jobs:
           jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
       # The upload action has no inputs for the listing, so the description,
       # summary and release notes are set through the AMO API afterwards.
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 26
       - name: Set the AMO listing and release notes from store/
         run: node build/amo-metadata.js --version "${GITHUB_REF_NAME#v}"
         env:

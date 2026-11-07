@@ -44,7 +44,7 @@ firefox)
 
 | what the log shows | likely cause | fix |
 |---|---|---|
-| HTTP 401 or 403 | `FIREFOX_JWT_ISSUER` or `FIREFOX_JWT_SECRET` wrong or revoked | generate new credentials on the AMO API key page, replace both secrets |
+| HTTP 401 or 403, for example `Unknown JWT iss`, usually already in "Check whether AMO already has this version" | `FIREFOX_JWT_ISSUER` or `FIREFOX_JWT_SECRET` wrong or revoked | generate new credentials on the AMO API key page, replace both secrets |
 | validation errors from the add-on linter | AMO rejected the package | fix the cause in the code and release a new version |
 | an error about the version number | AMO already holds this version: the job checks first and skips the upload, so this should only happen on a race | nothing to upload; re-run to update the listing text |
 | an error in "Set the AMO listing" | the upload went through but the description or release notes were not set | re-run the failed job, or edit them on the AMO version page |

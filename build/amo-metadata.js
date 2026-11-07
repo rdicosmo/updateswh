@@ -2,7 +2,11 @@
 // notes of one version from the text kept under store/.
 //
 //   FIREFOX_JWT_ISSUER=... FIREFOX_JWT_SECRET=... node build/amo-metadata.js [--dry-run] [--version X.Y.Z]
+//   FIREFOX_JWT_ISSUER=... FIREFOX_JWT_SECRET=... node build/amo-metadata.js --check-version [--version X.Y.Z]
 //
+// --check-version only asks AMO whether the version exists, and writes
+// exists=true|false to $GITHUB_OUTPUT (or prints it), so that a re-run
+// of the Release workflow skips an upload that already went through.
 // --dry-run prints the requests, with the Authorization header redacted,
 // and makes no network call; it needs no credentials. The version
 // defaults to src/manifest-base.json, the add-on GUID comes from
@@ -13,7 +17,7 @@
 // minutes after iat, "Authorization: JWT <token>").
 
 import { createHmac, randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkStoreText, manifestVersion } from "./check-store-text.js";
 
@@ -82,6 +86,14 @@ export async function send(req, { issuer, secret, fetchImpl = fetch, sleep, retr
     }
 }
 
+export async function versionExists({ guid, version, issuer, secret, fetchImpl = fetch }) {
+    const url = `${AMO_API}/addons/addon/${encodeURIComponent(guid)}/versions/v${version}/`;
+    const res = await fetchImpl(url, { headers: { Authorization: `JWT ${makeJwt(issuer, secret)}` } });
+    if (res.ok) return true;
+    if (res.status === 404) return false;
+    throw new Error(`GET ${url}: HTTP ${res.status} ${(await res.text()).slice(0, 500)}`);
+}
+
 export function readStoreText(root, version) {
     const errors = checkStoreText(root, version);
     if (errors.length) throw new Error(errors.join("\n"));
@@ -115,14 +127,26 @@ if (process.argv[1]?.endsWith("amo-metadata.js")) {
     const versionAt = args.indexOf("--version");
     const version = versionAt >= 0 ? args[versionAt + 1] : manifestVersion(root);
     const gecko = JSON.parse(readFileSync(join(root, "build/firefox-gecko.json"), "utf8"));
-    run({
-        root,
-        version,
-        guid: gecko.browser_specific_settings.gecko.id,
-        dryRun: args.includes("--dry-run"),
-        env: process.env,
-        sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    }).catch((error) => {
+    const guid = gecko.browser_specific_settings.gecko.id;
+    const main = args.includes("--check-version")
+        ? versionExists({
+              guid,
+              version,
+              issuer: process.env.FIREFOX_JWT_ISSUER,
+              secret: process.env.FIREFOX_JWT_SECRET,
+          }).then((exists) => {
+              console.log(`AMO ${exists ? "already has" : "does not have"} version ${version}.`);
+              if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `exists=${exists}\n`);
+          })
+        : run({
+              root,
+              version,
+              guid,
+              dryRun: args.includes("--dry-run"),
+              env: process.env,
+              sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+          });
+    main.catch((error) => {
         console.log(`::error::${error.message.replaceAll("\n", " ")}`);
         process.exit(1);
     });

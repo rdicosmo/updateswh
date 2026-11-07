@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { makeJwt, run, send } from "../../build/amo-metadata.js";
+import { makeJwt, run, send, versionExists } from "../../build/amo-metadata.js";
 
 const ISSUER = "user:12345:67";
 const SECRET = "test-secret-not-a-real-one";
@@ -132,5 +132,29 @@ describe("send", () => {
         const once = jest.fn(async () => response(404));
         await expect(send({ ...req, attempts: undefined }, options(once))).rejects.toThrow("HTTP 404");
         expect(once).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("versionExists", () => {
+    const response = (status) => ({ ok: status < 300, status, text: async () => "body" });
+    const ask = (fetchImpl) => versionExists({ guid: GUID, version: "0.9.3", issuer: ISSUER, secret: SECRET, fetchImpl });
+
+    test("asks for the version by number, with a JWT", async () => {
+        const fetchImpl = jest.fn(async () => response(200));
+        await ask(fetchImpl);
+        const [url, init] = fetchImpl.mock.calls[0];
+        expect(url).toBe(`${ADDON_URL}versions/v0.9.3/`);
+        expect(init.method).toBeUndefined();
+        expect(init.headers.Authorization).toMatch(/^JWT [\w-]+\.[\w-]+\.[\w-]+$/);
+    });
+
+    test("200 means the version exists, 404 that it does not", async () => {
+        await expect(ask(async () => response(200))).resolves.toBe(true);
+        await expect(ask(async () => response(404))).resolves.toBe(false);
+    });
+
+    test("any other status is an error, so a dead credential stops the job", async () => {
+        await expect(ask(async () => response(401))).rejects.toThrow("HTTP 401");
+        await expect(ask(async () => response(500))).rejects.toThrow("HTTP 500");
     });
 });

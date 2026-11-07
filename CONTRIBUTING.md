@@ -96,7 +96,7 @@ store/
   summary.txt           one-line summary, at most 132 characters (Chrome)
   notes/X.Y.Z.txt       user-facing release notes of each version
 tests/
-  unit/                 jest tests (jsdom), 137 tests
+  unit/                 jest tests (jsdom), 145 tests
   e2e/                  headless Chromium end-to-end: mock server +
                         puppeteer harness + 19 scenarios (live smoke gated
                         behind E2E_LIVE=1)
@@ -317,7 +317,7 @@ the forge agnostic code path.
 
 ```
 npm install
-npm test                    # jest (jsdom), 137 tests
+npm test                    # jest (jsdom), 145 tests
 npm run test:e2e            # jest + puppeteer-core (real Chromium) — 19 scenarios
 npm run build               # produces extension/updateswh.js + manifests
 make                        # build + package FireFox.zip / Chrome.zip / Edge.zip
@@ -369,7 +369,7 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    ```
    unzip -p FireFox.zip manifest.json | grep -A2 browser_specific_settings
    ```
-4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 137 unit
+4. `npm test && npm run test:e2e && npm run test:e2e:firefox`: 145 unit
    tests, 19 Chromium e2e scenarios and 7 Firefox scenarios must stay
    green.
 5. Write the release notes in `store/notes/X.Y.Z.txt`: one or two
