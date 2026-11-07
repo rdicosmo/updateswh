@@ -387,6 +387,11 @@ URLs and account bindings are kept locally in `HOWTO-RELEASE` (gitignored).
    uploads drafts to Chrome and Edge (publish them from the consoles),
    and submits to Firefox AMO with a source archive; AMO publishes the
    version once its review passes. Safari is released by hand.
+   When a store job fails, its run summary explains the usual causes
+   (mostly an expired or revoked credential, see
+   `build/store-failure-help.sh`). Recover with **Re-run failed jobs**
+   on that run, never with a new run: a new run would upload again to
+   the stores where the first one succeeded.
 9. Listing text. The Firefox job sets the AMO description, summary and
    release notes from `store/` through the AMO API
    (`build/amo-metadata.js`; `--dry-run` prints the requests without

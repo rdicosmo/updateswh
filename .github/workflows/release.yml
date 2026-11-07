@@ -114,6 +114,9 @@ jobs:
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      - name: Explain the failure
+        if: failure()
+        run: sh build/store-failure-help.sh chrome >> "$GITHUB_STEP_SUMMARY"
 
   edge:
     name: upload to Edge Add-ons
@@ -154,6 +157,9 @@ jobs:
           zip-path: Edge.zip
           api-key: ${{ secrets.EDGE_API_KEY }}
           client-id: ${{ secrets.EDGE_CLIENT_ID }}
+      - name: Explain the failure
+        if: failure()
+        run: sh build/store-failure-help.sh edge >> "$GITHUB_STEP_SUMMARY"
 
   firefox:
     name: submit to Firefox AMO
@@ -189,3 +195,6 @@ jobs:
         env:
           FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+      - name: Explain the failure
+        if: failure()
+        run: sh build/store-failure-help.sh firefox >> "$GITHUB_STEP_SUMMARY"
