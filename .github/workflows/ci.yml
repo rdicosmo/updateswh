@@ -16,6 +16,7 @@ jobs:
           node-version: 26
       - run: npm install
       - run: npm test
+      - run: npm run check:store
 
   e2e:
     name: e2e (headless Chromium)

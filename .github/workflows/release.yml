@@ -8,6 +8,10 @@ name: Release
 # approve. Chrome and Edge receive a draft, published from their
 # consoles; the Firefox upload is a listed submission, which AMO
 # publishes once its review passes. Safari is released by hand.
+#
+# The listing text lives in store/. The Firefox job sets it on AMO
+# through the API; the Chrome and Edge APIs cannot, so their jobs print
+# it in the run summary for pasting into the consoles.
 
 on:
   workflow_dispatch:
@@ -48,6 +52,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 26
+      - name: Check the store text of the tag
+        run: node build/check-store-text.js "${GITHUB_REF_NAME#v}"
       - run: npm install
       - run: npm test
       - run: make
@@ -74,6 +80,28 @@ jobs:
     runs-on: ubuntu-latest
     environment: stores
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Show the listing to paste into the Chrome Web Store console
+        run: |
+          {
+            echo "## Chrome Web Store listing for $GITHUB_REF_NAME"
+            echo
+            echo "Paste these into the Chrome Web Store console before submitting the draft."
+            echo
+            echo "### Description"
+            echo
+            echo '```'
+            cat store/description.txt
+            echo '```'
+            echo
+            echo "### Release notes"
+            echo
+            echo '```'
+            cat "store/notes/${GITHUB_REF_NAME#v}.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/download-artifact@v8
         with:
           name: release
@@ -94,6 +122,28 @@ jobs:
     runs-on: ubuntu-latest
     environment: stores
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Show the listing to paste into the Edge Add-ons console
+        run: |
+          {
+            echo "## Edge Add-ons listing for $GITHUB_REF_NAME"
+            echo
+            echo "Paste these into the Edge Add-ons console before submitting the draft."
+            echo
+            echo "### Description"
+            echo
+            echo '```'
+            cat store/description.txt
+            echo '```'
+            echo
+            echo "### Release notes"
+            echo
+            echo '```'
+            cat "store/notes/${GITHUB_REF_NAME#v}.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/download-artifact@v8
         with:
           name: release
@@ -112,6 +162,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: stores
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v8
         with:
           name: release
@@ -126,3 +179,13 @@ jobs:
             bundled by vite from src/, unminified.
           jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
           jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
+      # The upload action has no inputs for the listing, so the description,
+      # summary and release notes are set through the AMO API afterwards.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - name: Set the AMO listing and release notes from store/
+        run: node build/amo-metadata.js --version "${GITHUB_REF_NAME#v}"
+        env:
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
