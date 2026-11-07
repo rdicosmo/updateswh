@@ -1,0 +1,2 @@
+Custom GitLab and Gitea instances added on the options page work again in Firefox (https://github.com/rdicosmo/updateswh/issues/26).
+While an archival is in progress, right click on the light green button opens the last archived copy (https://github.com/rdicosmo/updateswh/issues/25).

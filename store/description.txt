@@ -1,0 +1,18 @@
+UpdateSWH shows whether the source code repository you are browsing is archived in Software Heritage, the universal archive of source code, and lets you archive it with one click when it is missing or out of date.
+
+A coloured button on the right edge of a repository page shows its archival state:
+
+- green: archived and up to date. Click to open the archived copy.
+- yellow: archived, but the repository has changed since. Click to request an update; right click to open the last archival.
+- grey: not archived yet. Click to request archival.
+- light green: an archival is in progress. Click to open the save request queue; right click to open the last archival, when there is one.
+- brown: the last archival attempt failed. Click to try again; right click to open the last archival.
+- orange: an API rate limit was reached. An access token, set on the options page, raises the limit.
+- red: the forge API request failed, for example on a private repository.
+- blue: the archive could not be reached. Click to open archive.softwareheritage.org and check.
+
+Built-in forges: GitHub, Bitbucket, GitLab.com, Gitee, Pagure; the GitLab instances 0xacab.org, gite.lirmm.fr, framagit.org and gricad-gitlab.univ-grenoble-alpes.fr; the Gitea instances git.rampin.org, repo.radio and git.fsfe.org; the Forgejo instances codeberg.org, git.disroot.org and git.minetest.land.
+
+Other GitLab, Gitea and Forgejo instances can be added on the options page. Access to each forge is asked for at run time, not at install: the options page opens on first install and grants access to all built-in forges with one button.
+
+More information: https://www.softwareheritage.org/browser-extensions/
